@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "543a0d42-1d02-4e18-9731-fcdaee5eb35e"
+      }
+    },
+    "owner": "bombh"
   }
 }
