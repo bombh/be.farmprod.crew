@@ -1,0 +1,30 @@
+{
+   // Editor
+   "editor.colorDecorators": false,
+   "editor.tabSize": 3,
+   "editor.detectIndentation": false,
+   "editor.renderWhitespace": "trailing",
+   "editor.minimap.enabled": false,
+   "editor.linkedEditing": true,
+   "editor.suggest.insertMode": "replace",
+   "editor.acceptSuggestionOnCommitCharacter": false,
+
+   // Files & Explorer
+   "files.defaultLanguage": "jsx",
+   "explorer.autoReveal": false,
+   "explorer.confirmDragAndDrop": false,
+
+   // Workbench
+   "workbench.tree.indent": 20,
+   "workbench.tree.renderIndentGuides": "always",
+   "workbench.editor.enablePreview": false,
+
+   // Prettier
+   "editor.defaultFormatter": "esbenp.prettier-vscode",
+   "editor.formatOnSave": true,
+   "prettier.tabWidth": 3,
+   "prettier.semi": false,
+   "prettier.printWidth": 120,
+   "prettier.bracketSpacing": true,
+   "prettier.singleAttributePerLine": true
+}
