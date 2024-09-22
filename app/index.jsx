@@ -1,3 +1,4 @@
+import { MotiView } from "moti"
 import { Image, Text, View } from "react-native"
 
 export default function Index() {
@@ -10,8 +11,15 @@ export default function Index() {
             backgroundColor: "#FFF",
          }}
       >
-         <Image source={require("@/assets/images/logo_128.png")} />
-         <Text>FARMPROD</Text>
+         <MotiView
+            style={{ alignItems: "center" }}
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", duration: 5000 }}
+         >
+            <Image source={require("@/assets/images/logo_128.png")} />
+            <Text>FARMPROD</Text>
+         </MotiView>
       </View>
    )
 }
