@@ -1,0 +1,19 @@
+# Farmprod API
+
+### Get all posts
+GET https://www.farmprod.be/ghost/api/content/posts/?key=fd7713115a89c0789d3753d616&limit=100&include=tags
+
+### Get 3 posts
+GET https://www.farmprod.be/ghost/api/content/posts/?key=fd7713115a89c0789d3753d616&limit=3&page=2
+
+### Get a post by id
+GET https://www.farmprod.be/ghost/api/content/posts/613115cdf4add766d8ab1d6d/?key=fd7713115a89c0789d3753d616&include=authors
+
+### Get all artists
+GET https://www.farmprod.be/ghost/api/content/authors/?key=fd7713115a89c0789d3753d616&limit=10
+
+### Get a page by slug
+GET https://www.farmprod.be/ghost/api/content/pages/slug/about?key=fd7713115a89c0789d3753d616&limit=10
+
+### Get a page by id
+GET https://www.farmprod.be/ghost/api/content/pages/613115cdf4add766d8ab1d5f?key=fd7713115a89c0789d3753d616&limit=10
