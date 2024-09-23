@@ -1,9 +1,11 @@
-import AppDrawer from '@/src/layouts/AppDrawer';
+export { default } from "@/src/layouts/AppDrawer"
 
-const Layout = () => {
-   return (
-      <AppDrawer />
-   )
-}
+// import AppDrawer from '@/src/layouts/AppDrawer';
 
-export default Layout
+// const Layout = () => {
+//    return (
+//       <AppDrawer />
+//    )
+// }
+
+// export default Layout
