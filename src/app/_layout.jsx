@@ -1,10 +1,16 @@
-import { Stack } from "expo-router"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
 import "react-native-reanimated"
+import { StatusBar } from "expo-status-bar"
+import { Slot } from "expo-router"
 
 export default function RootLayout() {
    return (
-      <Stack>
-         <Stack.Screen name="index" />
-      </Stack>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+         <StatusBar
+            style="light"
+            hidden={true}
+         />
+         <Slot />
+      </GestureHandlerRootView>
    )
 }
