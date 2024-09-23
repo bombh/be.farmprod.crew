@@ -18,7 +18,7 @@ const Loading = ({ label, hideLogo }) => {
                      className=""
                   />
                </MotiView>
-               <View className="h-12" />
+               <View className="h-16" />
             </>
          )}
          <ActivityIndicator
