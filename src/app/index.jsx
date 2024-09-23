@@ -17,8 +17,11 @@ export default function Index() {
             animate={{ opacity: 1 }}
             transition={{ type: "timing", duration: 5000 }}
          >
-            <Image source={require("@/assets/images/logo_128.png")} />
-            <Text>FARMPROD</Text>
+            <Image
+               source={require("@/assets/images/logo_128.png")}
+               className="-mt-24"
+            />
+            <Text className="mt-4 text-2xl font-bold">FARMPROD</Text>
          </MotiView>
       </View>
    )
