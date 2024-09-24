@@ -9,25 +9,28 @@ const ArtistCard = ({ name, profile_image, index }) => {
    const anim = index < 4 ? animations.listItem(index) : {}
 
    return (
-      <MotiView {...anim}>
-         <View className="flex-row items-center justify-center">
-            <View className="w-44 h-44 rounded-full bg-neutral-200">
+      <MotiView
+         {...anim}
+         className="items-center justify-center mb-5"
+      >
+         <View className="bg-white shadow-md p-6">
+            <View className="w-44 h-44">
                <Image
                   source={{ uri: profile_image }}
-                  className="w-44 h-44 rounded-full border border-black"
+                  className="w-44 h-44 border border-neutral-300 "
                   placeholder={placeholder}
                   placeholderContentFit="cover"
                   transition={500}
                />
             </View>
-         </View>
-         <View className="p-2 mb-5">
-            <Text
-               numberOfLines={1}
-               className="text-black font-marker text-xl text-center"
-            >
-               {name}
-            </Text>
+            <View className="pt-3">
+               <Text
+                  numberOfLines={1}
+                  className="text-black font-marker text-xl text-center"
+               >
+                  {name}
+               </Text>
+            </View>
          </View>
       </MotiView>
    )
