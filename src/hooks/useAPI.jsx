@@ -9,7 +9,6 @@ const useAPI = (method, endpoint, query) => {
    const [isLoading, setIsLoading] = useState(true)
    const [error, setError] = useState(null)
 
-   console.log(`Render useApi ${baseUrl} ... loading`)
    const options = {
       method: method,
       url: `${baseUrl}${endpoint}/?key=${key}&${query ? query : ""}`,

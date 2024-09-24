@@ -1,45 +1,52 @@
 {
-   "expo": {
-      "name": "be.farmprod.crew",
-      "slug": "Farmprod",
-      "version": "1.0.0",
-      "orientation": "portrait",
-      "icon": "./assets/icon.png",
-      "scheme": "farmprod",
-      "userInterfaceStyle": "automatic",
-      "splash": {
-         "image": "./assets/splash.png",
-         "resizeMode": "contain",
-         "backgroundColor": "#ffffff"
+  "expo": {
+    "name": "be.farmprod.crew",
+    "slug": "Farmprod",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "farmprod",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDJpwF3ajhQwPvu8nb-HAsZKrvWbjEqNrY"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
-      "ios": {
-         "supportsTablet": true,
-         "config": {
-            "googleMapsApiKey": "AIzaSyDJpwF3ajhQwPvu8nb-HAsZKrvWbjEqNrY"
-         }
-      },
-      "android": {
-         "adaptiveIcon": {
-            "foregroundImage": "./assets/adaptive-icon.png",
-            "backgroundColor": "#ffffff"
-         },
-         "package": "be.farmprod.crew",
-         "config": {
-            "googleMaps": {
-               "apiKey": "AIzaSyCk1WebaZXPmTNh2Qt2eh4jMs3PzWXLuU8"
-            }
-         }
-      },
-
-      "plugins": ["expo-router"],
-      "experiments": {
-         "typedRoutes": true
-      },
-      "extra": {
-         "eas": {
-            "projectId": "543a0d42-1d02-4e18-9731-fcdaee5eb35e"
-         }
-      },
-      "owner": "bombh"
-   }
+      "package": "be.farmprod.crew",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCk1WebaZXPmTNh2Qt2eh4jMs3PzWXLuU8"
+        }
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "543a0d42-1d02-4e18-9731-fcdaee5eb35e"
+      }
+    },
+    "owner": "bombh",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/543a0d42-1d02-4e18-9731-fcdaee5eb35e"
+    }
+  }
 }

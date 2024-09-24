@@ -38,7 +38,7 @@ export default function Screen() {
             />
 
             <View className="bg-black m-5 px-5 py-3">
-               <Text className="text-lg text-white text-center">The Book</Text>
+               <Text className="text-2xl font-marker text-white text-center">The Book</Text>
             </View>
 
             <Text className="text-xl text-center mx-5 px-5 py-2">IN PAINT WE TRUST - FARM PROD {"\n"}cfc Editions</Text>
@@ -123,7 +123,7 @@ export default function Screen() {
             </Text>
 
             <View className="bg-black m-5 px-5 py-3">
-               <Text className="text-lg text-white text-center">The Expo</Text>
+               <Text className="text-2xl font-marker text-white text-center">The Expo</Text>
             </View>
 
             <Text className="text-base text-justify mx-5 px-5 py-2 mb-5">

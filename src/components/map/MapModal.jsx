@@ -68,7 +68,7 @@ const MapModal = forwardRef(({ place }, ref) => {
                      className="w-28 h-28 mx-auto mb-4"
                   />
                )}
-               <Text className="text-white text-center text-xl">{place.name}</Text>
+               <Text className="text-white font-marker text-center text-xl">{place.name}</Text>
 
                <Text className="text-white text-center mt-2 text-md">{place.place}</Text>
 

@@ -14,15 +14,11 @@ const placeholder = require("@/assets/images/placeholder.png")
 
 // Delete HTML tags
 const deleteHtmlTag = (html, tag) => {
-   return html
-      .replace(new RegExp(`<${tag}>`, "gmi"), "")
-      .replace(new RegExp(`</${tag}>`, "gmi"), "")
+   return html.replace(new RegExp(`<${tag}>`, "gmi"), "").replace(new RegExp(`</${tag}>`, "gmi"), "")
 }
 // Delete HTML tags with attributes
 const deleteHtmlTagAttributes = (html, tag) => {
-   return html
-      .replace(new RegExp(`<${tag}.+?>`, "gmi"), "")
-      .replace(new RegExp(`</${tag}>`, "gmi"), "")
+   return html.replace(new RegExp(`<${tag}.+?>`, "gmi"), "").replace(new RegExp(`</${tag}>`, "gmi"), "")
 }
 
 // Delete HTML tags with content
@@ -99,17 +95,21 @@ export default function RenderHtml({ html, authors, email, textAlign }) {
                   // <h2>
                   content = item.replace(/<h2.+?>/, "").replace(/<\/h2>/, "")
                   return (
-                     <View className="bg-black mx-5 px-5 py-3" key={index}>
-                        <Text className="text-lg text-white text-center">
-                           {content}
-                        </Text>
+                     <View
+                        className="bg-black mx-5 p-5"
+                        key={index}
+                     >
+                        <Text className="text-white text-center">{content}</Text>
                      </View>
                   )
                   break
                case "<im":
                   // <image>
                   return (
-                     <View className="w-full" key={index}>
+                     <View
+                        className="w-full"
+                        key={index}
+                     >
                         <Image
                            className="w-full aspect-square mb-5"
                            source={{ uri: item.substring(10, item.length - 2) }}
@@ -128,10 +128,11 @@ export default function RenderHtml({ html, authors, email, textAlign }) {
          {/* Authors if exists */}
          {artists && (
             <>
-               <View className="bg-black mx-5 px-5 py-3" key="authors">
-                  <Text className="text-lg text-white text-center">
-                     Artists
-                  </Text>
+               <View
+                  className="bg-black mx-5 p-5"
+                  key="authors"
+               >
+                  <Text className="text-white text-center">Artists</Text>
                </View>
                <Text
                   className="text-base mx-5 px-5 py-2 mb-10 text-center"
@@ -151,7 +152,11 @@ export default function RenderHtml({ html, authors, email, textAlign }) {
                      Linking.openURL(`mailto:${email}`)
                   }}
                >
-                  <MaterialIcons name="email" size={24} color={colors.white} />
+                  <MaterialIcons
+                     name="email"
+                     size={24}
+                     color={colors.white}
+                  />
                </Pressable>
             </View>
          )}

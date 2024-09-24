@@ -34,7 +34,7 @@ const Screen = () => {
             <View className="bg-black w-full px-3 py-5">
                <Text
                   numberOfLines={1}
-                  className="text-2xl text-white font-medium text-center"
+                  className="text-2xl text-white font-marker text-center"
                >
                   {title}
                </Text>

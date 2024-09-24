@@ -54,7 +54,7 @@ const WorkCard = ({ id, title, excerpt, feature_image, tags, index }) => {
                <View className="absolute bg-black/70 bottom-0 w-full p-2">
                   <Text
                      numberOfLines={1}
-                     className="text-white font-semibold text-lg text-center"
+                     className="text-white font-marker text-xl text-center"
                   >
                      {title.trim()}
                   </Text>

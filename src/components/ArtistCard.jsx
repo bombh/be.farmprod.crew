@@ -24,7 +24,7 @@ const ArtistCard = ({ name, profile_image, index }) => {
          <View className="p-2 mb-5">
             <Text
                numberOfLines={1}
-               className="text-black font-semibold text-lg text-center"
+               className="text-black font-marker text-xl text-center"
             >
                {name}
             </Text>
