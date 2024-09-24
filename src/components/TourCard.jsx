@@ -39,7 +39,7 @@ export default function TourCard({ id, title, img, index }) {
             <View className="absolute bottom-0 w-full bg-black/70 p-2">
                <Text
                   numberOfLines={1}
-                  className="text-white font-marker text-xl text-center"
+                  className="text-white font-marker text-base text-center"
                >
                   {title}
                </Text>

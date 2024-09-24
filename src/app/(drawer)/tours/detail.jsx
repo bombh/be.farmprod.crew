@@ -2,6 +2,7 @@ import { View } from "react-native"
 import { useLocalSearchParams } from "expo-router"
 import { useRef, useState } from "react"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+// TODO: replace Reanimated with Moti
 
 import HeaderBack from "@/src/layouts/HeaderBack"
 import useFetch from "@/src/hooks/useFetch"
