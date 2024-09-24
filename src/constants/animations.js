@@ -44,17 +44,17 @@ export const animations = {
             repeatReverse: true,
             easing: Easing.elastic(3),
          },
-         exit: {
-            opacity: 0,
-            rotate: "0deg",
-            translateY: -50,
-            scale: 0.5,
-         },
-         exitTransition: {
-            type: "timing",
-            duration: 200,
-            easing: Easing.elastic(2),
-         },
+         // exit: {
+         //    opacity: 0,
+         //    rotate: "0deg",
+         //    translateY: 100,
+         //    scale: 0.5,
+         // },
+         // exitTransition: {
+         //    type: "timing",
+         //    duration: 200,
+         //    easing: Easing.elastic(2),
+         // },
       }
    },
 }
