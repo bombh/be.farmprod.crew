@@ -2,13 +2,16 @@ import { Drawer } from "expo-router/drawer"
 import { FontAwesome6 } from "@expo/vector-icons"
 import colors from "tailwindcss/colors"
 import { styled } from "nativewind"
-import { View, Text, Image } from "react-native"
+import { View, Text, Image, Pressable } from "react-native"
 import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer"
+import * as Linking from "expo-linking"
 
 const logo = require("@/assets/images/logo_drawer.png")
 
 // Drawer content
 const AppDrawerContent = (props) => {
+   const Icons = styled(FontAwesome6)
+
    return (
       <>
          <DrawerContentScrollView {...props}>
@@ -22,8 +25,38 @@ const AppDrawerContent = (props) => {
             <DrawerItemList {...props} />
          </DrawerContentScrollView>
 
-         <View className="pb-3">
-            <Text className="text-neutral-500 text-center text-xs">Version 1.0.0</Text>
+         {/* Social links */}
+         <View className="mb-4 flex-row space-x-12 justify-center">
+            {/* TODO: open links in App */}
+            <Pressable
+               onPress={() => {
+                  Linking.openURL("https://www.facebook.com/FarmProd/")
+               }}
+            >
+               <Icons
+                  name="facebook"
+                  size={24}
+                  color={colors.neutral[400]}
+                  className=""
+               />
+            </Pressable>
+
+            <Pressable
+               onPress={() => {
+                  Linking.openURL("https://www.instagram.com/farmprod/")
+               }}
+            >
+               <Icons
+                  name="instagram"
+                  size={24}
+                  color={colors.neutral[400]}
+                  className=""
+               />
+            </Pressable>
+         </View>
+
+         <View className="mb-12">
+            <Text className="text-neutral-500 text-center text-xs">Follow us on social networks</Text>
          </View>
       </>
    )

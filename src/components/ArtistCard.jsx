@@ -17,7 +17,7 @@ const ArtistCard = ({ name, profile_image, index }) => {
             <View className="w-44 h-44">
                <Image
                   source={{ uri: profile_image }}
-                  className="w-44 h-44 border border-neutral-300 "
+                  className="w-44 h-44"
                   placeholder={placeholder}
                   placeholderContentFit="cover"
                   transition={500}
