@@ -23,10 +23,10 @@ const ArtistCard = ({ name, profile_image, index }) => {
                   transition={500}
                />
             </View>
-            <View className="pt-3">
+            <View className="pt-3 items-center">
                <Text
-                  numberOfLines={1}
-                  className="text-black font-marker text-xl text-center"
+                  numberOfLines={2}
+                  className="text-black font-marker text-xl text-center w-40"
                >
                   {name}
                </Text>
