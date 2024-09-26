@@ -30,7 +30,7 @@ const useAPI = (method, endpoint, query) => {
       } catch (error) {
          //console.log(error)
          setError(error)
-         alert("Error fetching data, please try again later...")
+         alert("Error loading data, please try again later...")
       } finally {
          setIsLoading(false)
       }
@@ -40,12 +40,12 @@ const useAPI = (method, endpoint, query) => {
       fetchData()
    }, [])
 
-   // const refetch = () => {
-   //    //setIsLoading(true);
-   //    fetchData();
-   // }
+   const refetch = () => {
+      setIsLoading(true)
+      fetchData()
+   }
 
-   return { data, isLoading, error }
+   return { data, isLoading, error, refetch }
 }
 
 export default useAPI
