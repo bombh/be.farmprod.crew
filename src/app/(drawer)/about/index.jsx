@@ -6,6 +6,7 @@ import ScreenTitle from "@/src/components/app/ScreenTitle"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import RenderHtml from "@/src/components/app/RenderHtml"
 import Loading from "@/src/components/app/Loading"
+import { AnimatePresence } from "moti"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
@@ -17,10 +18,15 @@ export default function Screen() {
          <HeaderDrawer />
 
          <View className="flex-1 bg-white">
-            {isLoading ? (
-               <Loading />
-            ) : (
-               data.pages && (
+            <AnimatePresence exitBeforeEnter>
+               {isLoading && (
+                  <Loading
+                     key="loading"
+                     label="Loading Works"
+                  />
+               )}
+
+               {!isLoading && data.pages && (
                   <ScrollView>
                      <ScreenTitle title="About" />
                      <Image
@@ -41,8 +47,8 @@ export default function Screen() {
                         />
                      </View>
                   </ScrollView>
-               )
-            )}
+               )}
+            </AnimatePresence>
          </View>
       </>
    )

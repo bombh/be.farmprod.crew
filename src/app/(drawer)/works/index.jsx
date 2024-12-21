@@ -6,6 +6,7 @@ import ScreenTitle from "@/src/components/app/ScreenTitle"
 import WorkCard from "@/src/components/WorkCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import Loading from "@/src/components/app/Loading"
+import { MotiView, AnimatePresence } from "moti"
 
 // const onEndReached = () => {
 //    console.log("Reached end of list")
@@ -18,27 +19,34 @@ export default function Screen() {
       <>
          <HeaderDrawer />
          <View className="flex-1 px-5 bg-white">
-            {isLoading ? (
-               <Loading label="Loading Works" />
-            ) : (
-               <FlashList
-                  data={data.posts}
-                  renderItem={({ item, index }) => (
-                     <WorkCard
-                        {...item}
-                        index={index}
+            <AnimatePresence exitBeforeEnter>
+               {isLoading && (
+                  <Loading
+                     key="loading"
+                     label="Loading Works"
+                  />
+               )}
+               {!isLoading && (
+                  <MotiView
+                     key="dataList"
+                     className="flex-1"
+                  >
+                     <FlashList
+                        data={data.posts}
+                        renderItem={({ item, index }) => (
+                           <WorkCard
+                              {...item}
+                              index={index}
+                           />
+                        )}
+                        keyExtractor={(item) => item.id}
+                        estimatedItemSize={268}
+                        onEndReachedThreshold={0.5}
+                        ListHeaderComponent={<ScreenTitle title="Works" />}
                      />
-                  )}
-                  keyExtractor={(item) => item.id}
-                  estimatedItemSize={268}
-                  onEndReachedThreshold={0.5}
-                  ListHeaderComponent={<ScreenTitle title="Works" />}
-                  //onEndReached={onEndReached}
-                  // initialNumToRender={5}
-                  // maxToRenderPerBatch={5}
-                  // scrollEventThrottle={16}
-               />
-            )}
+                  </MotiView>
+               )}
+            </AnimatePresence>
          </View>
       </>
    )
