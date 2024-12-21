@@ -2,7 +2,7 @@ import { View } from "react-native"
 import { useLocalSearchParams } from "expo-router"
 import { useRef, useState } from "react"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-// TODO: replace Reanimated with Moti
+import { AnimatePresence, MotiView } from "moti"
 
 import HeaderBack from "@/src/layouts/HeaderBack"
 import useFetch from "@/src/hooks/useFetch"
@@ -51,22 +51,28 @@ export default function Screen() {
       <>
          <HeaderBack />
          <View className="flex-1 bg-white">
-            {isLoading || !isTransitionEnd ? (
-               // Loading...
-               <Loading label="Loading Tour" />
-            ) : (
-               // Map view
-               <Animated.View
-                  className="flex-1"
-                  entering={FadeIn}
-                  exiting={FadeOut}
-               >
-                  <Map
-                     data={data}
-                     onMarkerPress={handleMarkerPress}
+            <AnimatePresence exitBeforeEnter>
+               {isLoading || !isTransitionEnd ? (
+                  // Loading...
+                  <Loading
+                     key="loading"
+                     label="Loading Tour"
                   />
-               </Animated.View>
-            )}
+               ) : (
+                  // Map view
+                  <MotiView
+                     key="map"
+                     className="flex-1"
+                     from={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                  >
+                     <Map
+                        data={data}
+                        onMarkerPress={handleMarkerPress}
+                     />
+                  </MotiView>
+               )}
+            </AnimatePresence>
          </View>
          {/* Map modal */}
          <MapModal
