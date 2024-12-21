@@ -10,14 +10,14 @@ import Loading from "@/src/components/app/Loading"
 export default function Screen() {
    const router = useRouter()
 
-   const { data, isLoading, error } = useAPI("GET", "authors", "limit=100")
+   const { data, isLoading, error } = useAPI("GET", "authors", "limit=15")
 
    return (
       <>
          <HeaderDrawer />
 
          <View className="flex-1 px-3 bg-white">
-            {isLoading ? (
+            {isLoading || 1 === 1 ? (
                <Loading label="Loading Artists" />
             ) : (
                <FlashList
