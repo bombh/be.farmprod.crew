@@ -55,7 +55,7 @@ export default function Screen() {
                {isLoading || !isTransitionEnd ? (
                   // Loading...
                   <Loading
-                     key="loading"
+                     key={`loading${id}`}
                      label="Loading Tour"
                   />
                ) : (

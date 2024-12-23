@@ -8,6 +8,7 @@ const useAPI = (method, endpoint, query) => {
    const [data, setData] = useState([])
    const [isLoading, setIsLoading] = useState(true)
    const [error, setError] = useState(null)
+   const [isError, setIsError] = useState(false)
 
    const options = {
       method: method,
@@ -22,15 +23,17 @@ const useAPI = (method, endpoint, query) => {
    const fetchData = async () => {
       setIsLoading(true)
       setError(null)
+      setIsError(false)
 
       try {
          const result = await axios.request(options)
          setData(result.data)
          //console.log(result.data)
       } catch (error) {
-         //console.log(error)
+         console.log(console.log(error.message))
          setError(error)
-         alert("Error loading data, please try again later...")
+         setIsError(true)
+         //alert("Error loading data, please try again later...")
       } finally {
          setIsLoading(false)
       }
@@ -42,10 +45,10 @@ const useAPI = (method, endpoint, query) => {
 
    const refetch = () => {
       setIsLoading(true)
-      fetchData()
+      fetchData(options)
    }
 
-   return { data, isLoading, error, refetch }
+   return { data, isLoading, error, isError, refetch }
 }
 
 export default useAPI

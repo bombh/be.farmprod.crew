@@ -1,16 +1,20 @@
-import { View, ActivityIndicator, Image, Text } from "react-native"
+import { View, ActivityIndicator, Image, Text, Pressable } from "react-native"
 import colors from "tailwindcss/colors"
 import { MotiView } from "moti"
 import { animations } from "@/src/constants"
+import { useEffect, useState } from "react"
 
 const logo = require("@/assets/images/logo_128.png")
 
 const anim = animations.loadingLogo()
 //{...anim}
 
-const Loading = ({ label, hideLogo }) => {
+const Loading = ({ label, hideLogo, isError, refetch }) => {
+   //useEffect(() => {}, [label])
+   console.log("isError", isError)
    return (
       <MotiView
+         //key={`load-${Math.random()}}`}
          className="flex-1 items-center justify-center px-5 pb-32"
          from={{
             opacity: 0,
@@ -21,12 +25,15 @@ const Loading = ({ label, hideLogo }) => {
             translateX: 0,
          }}
          exit={{
-            opacity: 0,
+            opacity: 1,
             translateX: 150,
          }}
          transition={{
             type: "timing",
             duration: 250,
+            // opacity: {
+            //    loop: true,
+            // },
          }}
       >
          {!hideLogo && (
@@ -45,7 +52,15 @@ const Loading = ({ label, hideLogo }) => {
             size="large"
             color={colors.neutral[500]}
          />
-         <Text className="mt-2 text-neutral-500">{label ? label : "Loading"}</Text>
+         {isError ? (
+            <Pressable onPress={refetch}>
+               <Text className="mt-4">
+                  Error loading data ... <Text className="text-blue-500">Try again</Text>
+               </Text>
+            </Pressable>
+         ) : (
+            <Text className="mt-4 text-neutral-500">{label ? label : "Loading"}</Text>
+         )}
       </MotiView>
    )
 }

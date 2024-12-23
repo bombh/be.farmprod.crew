@@ -1,4 +1,4 @@
-import { View } from "react-native"
+import { Pressable, Text, View } from "react-native"
 import { FlashList } from "@shopify/flash-list"
 
 import useAPI from "@/src/hooks/useAPI"
@@ -13,20 +13,23 @@ import { MotiView, AnimatePresence } from "moti"
 // }
 
 export default function Screen() {
-   const { data, isLoading, error } = useAPI("GET", "posts", "limit=100&include=tags")
+   const { data, isLoading, isError, refetch } = useAPI("GET", "posts", "limit=100&include=tags")
 
    return (
       <>
          <HeaderDrawer />
          <View className="flex-1 px-5 bg-white">
             <AnimatePresence exitBeforeEnter>
-               {isLoading && (
+               {(isLoading || isError) && (
                   <Loading
                      key="loading"
                      label="Loading Works"
+                     isError={isError}
+                     refetch={refetch}
                   />
                )}
-               {!isLoading && (
+
+               {!isLoading && !isError && (
                   <MotiView
                      key="dataList"
                      className="flex-1"

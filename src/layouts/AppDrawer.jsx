@@ -8,6 +8,18 @@ import * as Linking from "expo-linking"
 
 const logo = require("@/assets/images/logo_drawer.png")
 
+// Open web or app
+const openWebOrApp = async (webUrl, appUrl) => {
+   try {
+      const supported = await Linking.canOpenURL(appUrl)
+      if (supported) {
+         await Linking.openURL(appUrl)
+      } else {
+         await Linking.openURL(webUrl)
+      }
+   } catch (error) {}
+}
+
 // Drawer content
 const AppDrawerContent = (props) => {
    const Icons = styled(FontAwesome6)
@@ -27,10 +39,9 @@ const AppDrawerContent = (props) => {
 
          {/* Social links */}
          <View className="mb-4 flex-row space-x-12 justify-center">
-            {/* TODO: open links in App */}
             <Pressable
                onPress={() => {
-                  Linking.openURL("https://www.facebook.com/FarmProd/")
+                  openWebOrApp("https://www.facebook.com/FarmProd/", "fb://profile/166003850137702")
                }}
             >
                <Icons
@@ -43,7 +54,7 @@ const AppDrawerContent = (props) => {
 
             <Pressable
                onPress={() => {
-                  Linking.openURL("https://www.instagram.com/farmprod/")
+                  openWebOrApp("https://www.instagram.com/farmprod/,", "instagram://user?username=farmprod")
                }}
             >
                <Icons

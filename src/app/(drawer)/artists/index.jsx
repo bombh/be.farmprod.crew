@@ -21,7 +21,7 @@ export default function Screen() {
             <AnimatePresence exitBeforeEnter>
                {isLoading && (
                   <Loading
-                     key="loading"
+                     key="loadingArtists"
                      label="Loading Artists"
                   />
                )}
