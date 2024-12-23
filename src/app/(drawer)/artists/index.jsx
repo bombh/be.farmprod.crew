@@ -11,7 +11,7 @@ import { AnimatePresence, MotiView } from "moti"
 export default function Screen() {
    const router = useRouter()
 
-   const { data, isLoading, error } = useAPI("GET", "authors", "limit=15")
+   const { data, isLoading, isError, refetch } = useAPI("GET", "authors", "limit=15")
 
    return (
       <>
@@ -19,14 +19,16 @@ export default function Screen() {
 
          <View className="flex-1 px-3 bg-white">
             <AnimatePresence exitBeforeEnter>
-               {isLoading && (
+               {(isLoading || isError) && (
                   <Loading
                      key="loadingArtists"
                      label="Loading Artists"
+                     isError={isError}
+                     refetch={refetch}
                   />
                )}
 
-               {!isLoading && (
+               {!isLoading && !isError && (
                   <MotiView
                      key="dataList"
                      className="flex-1"

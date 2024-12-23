@@ -25,7 +25,7 @@ export default function Screen() {
    // Hooks
    const params = useLocalSearchParams()
    const { id } = params
-   const { data, isLoading, error } = useFetch(`app/data/places.${id}.json`)
+   const { data, isLoading, isError, refetch } = useFetch(`app/data/places.${id}.json`)
 
    // Handle map's marker press
    const handleMarkerPress = (point) => {
@@ -52,11 +52,13 @@ export default function Screen() {
          <HeaderBack />
          <View className="flex-1 bg-white">
             <AnimatePresence exitBeforeEnter>
-               {isLoading || !isTransitionEnd ? (
+               {isLoading || isError || !isTransitionEnd ? (
                   // Loading...
                   <Loading
                      key={`loading${id}`}
                      label="Loading Tour"
+                     isError={isError}
+                     refetch={refetch}
                   />
                ) : (
                   // Map view

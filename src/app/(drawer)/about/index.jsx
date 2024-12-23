@@ -11,7 +11,7 @@ import { AnimatePresence } from "moti"
 const placeholder = require("@/assets/images/placeholder.png")
 
 export default function Screen() {
-   const { data, isLoading, error } = useAPI("GET", "pages/slug/about", "")
+   const { data, isLoading, isError, refetch } = useAPI("GET", "pages/slug/about", "")
 
    return (
       <>
@@ -19,14 +19,16 @@ export default function Screen() {
 
          <View className="flex-1 bg-white">
             <AnimatePresence exitBeforeEnter>
-               {isLoading && (
+               {(isLoading || isError) && (
                   <Loading
                      key="loadingAbout"
                      label="Loading About"
+                     isError={isError}
+                     refetch={refetch}
                   />
                )}
 
-               {!isLoading && data.pages && (
+               {!isLoading && !isError && (
                   <ScrollView>
                      <ScreenTitle title="About" />
                      <Image

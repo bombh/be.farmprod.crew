@@ -18,11 +18,12 @@ export default function Screen() {
    return (
       <>
          <HeaderDrawer />
+
          <View className="flex-1 px-5 bg-white">
             <AnimatePresence exitBeforeEnter>
                {(isLoading || isError) && (
                   <Loading
-                     key="loading"
+                     key="loadingWorks"
                      label="Loading Works"
                      isError={isError}
                      refetch={refetch}

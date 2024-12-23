@@ -25,7 +25,7 @@ const Loading = ({ label, hideLogo, isError, refetch }) => {
             translateX: 0,
          }}
          exit={{
-            opacity: 1,
+            opacity: 0,
             translateX: 150,
          }}
          transition={{

@@ -7,6 +7,7 @@ const useFetch = (endpoint) => {
    const [data, setData] = useState({})
    const [isLoading, setIsLoading] = useState(true)
    const [error, setError] = useState(null)
+   const [isError, setIsError] = useState(false)
 
    const options = {
       method: "GET",
@@ -21,6 +22,7 @@ const useFetch = (endpoint) => {
    const fetchData = async () => {
       setIsLoading(true)
       setError(null)
+      setIsError(false)
 
       try {
          const result = await axios.request(options)
@@ -29,6 +31,7 @@ const useFetch = (endpoint) => {
       } catch (error) {
          //console.log(error)
          setError(error)
+         setIsError(true)
          //alert("Error fetching data, please try again later...")
       } finally {
          setIsLoading(false)
@@ -39,12 +42,13 @@ const useFetch = (endpoint) => {
       fetchData()
    }, [])
 
-   // const refetch = () => {
-   //    //setIsLoading(true);
-   //    fetchData();
-   // }
+   const refetch = () => {
+      setIsLoading(true)
+      setIsError(false)
+      fetchData()
+   }
 
-   return { data, isLoading, error }
+   return { data, isLoading, error, isError, refetch }
 }
 
 export default useFetch

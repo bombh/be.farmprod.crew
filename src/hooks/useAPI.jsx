@@ -45,6 +45,7 @@ const useAPI = (method, endpoint, query) => {
 
    const refetch = () => {
       setIsLoading(true)
+      setIsError(false)
       fetchData(options)
    }
 
