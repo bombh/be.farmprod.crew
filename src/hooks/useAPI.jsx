@@ -30,7 +30,7 @@ const useAPI = (method, endpoint, query) => {
          setData(result.data)
          //console.log(result.data)
       } catch (error) {
-         console.log(console.log(error.message))
+         //console.log(console.log(error.message))
          setError(error)
          setIsError(true)
          //alert("Error loading data, please try again later...")

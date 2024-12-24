@@ -11,7 +11,7 @@ const anim = animations.loadingLogo()
 
 const Loading = ({ label, hideLogo, isError, refetch }) => {
    //useEffect(() => {}, [label])
-   console.log("isError", isError)
+
    return (
       <MotiView
          //key={`load-${Math.random()}}`}
