@@ -15,8 +15,18 @@ const Screen = () => {
    const { id, title, excerpt, imgHeader, tagText } = params
 
    // Get content
-   const { data, isLoading, error } = useAPI("GET", `posts/${id}`, "include=authors")
+   const { data, isLoading, isError, refetch } = useAPI("GET", `posts/${id}`, "include=authors")
    const { width } = useWindowDimensions()
+
+   let imageIndex = 0
+   // const [htmlArray, setHtmlArray] = useState([])
+
+   // useEffect(() => {
+   //    if (data) {
+   //       const html = cleanHtml(data.posts[0].html)
+   //       setHtmlArray(html)
+   //    }
+   // }, [data])
 
    return (
       <>
@@ -45,7 +55,24 @@ const Screen = () => {
                <Text className="text-lg text-center text-neutral-500 leading-6">{excerpt}</Text>
             </View>
 
-            {isLoading ? (
+            {(isLoading || isError) && (
+               <Loading
+                  key="loadingWorks"
+                  label="Loading Works"
+                  isError={isError}
+                  refetch={refetch}
+               />
+            )}
+
+            {!isLoading && !isError && data?.posts.length && (
+               <RenderHtml
+                  html={data?.posts[0].html}
+                  authors={data?.posts[0].authors}
+                  gallery={true}
+               />
+            )}
+
+            {/* {isLoading ? (
                <Loading
                   label={"Loading " + title}
                   hideLogo={true}
@@ -57,7 +84,7 @@ const Screen = () => {
                      authors={data?.posts[0].authors}
                   />
                </>
-            )}
+            )} */}
          </ScrollView>
       </>
    )
