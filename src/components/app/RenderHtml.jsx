@@ -25,7 +25,7 @@ export default function RenderHtml({ html, authors, email, textAlign, gallery })
       if (gallery) {
          const image = getImageURI(uri)
          const imageIndex = images.indexOf(image)
-         console.log("images", uri, images, imageIndex)
+         //console.log("images", uri, images, imageIndex)
 
          router.navigate({
             pathname: `works/pictures`,
@@ -78,7 +78,7 @@ export default function RenderHtml({ html, authors, email, textAlign, gallery })
                            className="active:opacity-70"
                         >
                            <Image
-                              className="w-full aspect-square mb-5"
+                              className="w-full aspect-video mb-5"
                               source={{ uri: item.substring(10, item.length - 2) }}
                               placeholder={placeholder}
                               placeholderContentFit="cover"
