@@ -5,6 +5,8 @@ import ScreenTitle from "@/src/components/app/ScreenTitle"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import colors from "tailwindcss/colors"
 import { MaterialIcons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
+import { getImageURI } from "@/src/utils/html"
 
 const baseUrl = "https://map.farmprod.be/street-art-map-olln/public/app/images/"
 const placeholder = require("@/assets/images/placeholder.png")
@@ -21,7 +23,35 @@ const images = {
    expo04: `${baseUrl}expo_04.jpg`,
 }
 
+const imagesArray = [
+   images.cover,
+   images.page01,
+   images.page02,
+   images.page03,
+   images.expo01,
+   images.expo02,
+   images.expo04,
+   images.expo03,
+]
+
 export default function Screen() {
+   const router = useRouter()
+
+   const handlePressImage = (uri) => {
+      console.log("uri", uri)
+
+      const imageIndex = imagesArray.indexOf(uri)
+      //console.log("images", uri, images, imageIndex)
+
+      router.navigate({
+         pathname: `20years/pictures`,
+         params: {
+            index: imageIndex,
+            images: imagesArray,
+         },
+      })
+   }
+
    return (
       <>
          <HeaderDrawer />
@@ -44,11 +74,16 @@ export default function Screen() {
             <Text className="text-xl text-center mx-5 px-5 py-2">IN PAINT WE TRUST - FARM PROD {"\n"}cfc Editions</Text>
 
             <View className="mx-5 p-3">
-               <Image
-                  source={images.cover}
-                  contentFit="contain"
-                  className="w-full h-80"
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.cover)}
+               >
+                  <Image
+                     source={images.cover}
+                     contentFit="contain"
+                     className="w-full h-80"
+                  />
+               </Pressable>
             </View>
 
             <View className="flex items-center justify-center">
@@ -82,39 +117,54 @@ export default function Screen() {
             </Text>
 
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={{
-                     uri: images.page01,
-                  }}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.page01)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={{
+                        uri: images.page01,
+                     }}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
 
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={{
-                     uri: images.page02,
-                  }}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.page02)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={{
+                        uri: images.page02,
+                     }}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
 
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={{
-                     uri: images.page03,
-                  }}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.page03)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={{
+                        uri: images.page03,
+                     }}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
 
             <Text className="text-base text-justify mx-5 px-5 py-2 mb-5">
@@ -156,40 +206,60 @@ export default function Screen() {
 
             {/* Images */}
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={images.expo01}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.expo01)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={images.expo01}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={images.expo02}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.expo02)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={images.expo02}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
             <View className="mb-5">
-               <Image
-                  className="w-full aspect-video"
-                  source={images.expo04}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.expo04)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={images.expo04}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
             <View className="mb-0">
-               <Image
-                  className="w-full aspect-video"
-                  source={images.expo03}
-                  placeholder={placeholder}
-                  placeholderContentFit="cover"
-                  transition={500}
-               />
+               <Pressable
+                  className="active:opacity-70"
+                  onPress={() => handlePressImage(images.expo03)}
+               >
+                  <Image
+                     className="w-full aspect-video"
+                     source={images.expo03}
+                     placeholder={placeholder}
+                     placeholderContentFit="cover"
+                     transition={500}
+                  />
+               </Pressable>
             </View>
          </ScrollView>
       </>
