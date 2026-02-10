@@ -3,7 +3,12 @@
     "allow": [
       "Bash(test:*)",
       "Bash(ls:*)",
-      "Bash(node --version:*)"
+      "Bash(node --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npx expo lint:*)",
+      "Bash(watchman watch-del:*)",
+      "Bash(watchman watch-project:*)"
     ]
   }
 }
