@@ -1,9 +1,15 @@
+import "@/global.css"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import "react-native-reanimated"
 import { StatusBar } from "expo-status-bar"
 import { Slot, SplashScreen } from "expo-router"
 import { useFonts } from "expo-font"
 import { useEffect } from "react"
+import { Image } from "expo-image"
+import { cssInterop } from "nativewind"
+
+// Register third-party components for NativeWind v4 className support
+cssInterop(Image, { className: "style" })
 
 SplashScreen.preventAutoHideAsync()
 
