@@ -15,6 +15,7 @@ export default function RenderHtml({ html, authors, email, textAlign, gallery })
    const artists = authors?.map((author) => author.name).join(" / ")
    let content = ""
 
+   let textClass
    if (textAlign === "justify") {
       textClass = "text-justify"
    } else {
