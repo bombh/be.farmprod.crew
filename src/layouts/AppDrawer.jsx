@@ -1,10 +1,16 @@
 import { Drawer } from "expo-router/drawer"
 import { FontAwesome6 } from "@expo/vector-icons"
 import colors from "tailwindcss/colors"
-import { styled } from "nativewind"
+import { cssInterop } from "nativewind"
 import { View, Text, Image, Pressable } from "react-native"
 import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer"
 import * as Linking from "expo-linking"
+
+cssInterop(FontAwesome6, {
+   className: {
+      target: "style",
+   },
+})
 
 const logo = require("@/assets/images/logo_drawer.png")
 
@@ -22,8 +28,6 @@ const openWebOrApp = async (webUrl, appUrl) => {
 
 // Drawer content
 const AppDrawerContent = (props) => {
-   const Icons = styled(FontAwesome6)
-
    return (
       <>
          <DrawerContentScrollView {...props}>
@@ -38,13 +42,13 @@ const AppDrawerContent = (props) => {
          </DrawerContentScrollView>
 
          {/* Social links */}
-         <View className="mb-4 flex-row space-x-12 justify-center">
+         <View className="mb-4 flex-row gap-12 justify-center">
             <Pressable
                onPress={() => {
                   openWebOrApp("https://www.facebook.com/FarmProd/", "fb://profile/166003850137702")
                }}
             >
-               <Icons
+               <FontAwesome6
                   name="facebook"
                   size={24}
                   color={colors.neutral[400]}
@@ -57,7 +61,7 @@ const AppDrawerContent = (props) => {
                   openWebOrApp("https://www.instagram.com/farmprod/,", "instagram://user?username=farmprod")
                }}
             >
-               <Icons
+               <FontAwesome6
                   name="instagram"
                   size={24}
                   color={colors.neutral[400]}
@@ -74,8 +78,6 @@ const AppDrawerContent = (props) => {
 }
 
 export default function AppDrawer() {
-   const Icons = styled(FontAwesome6)
-
    return (
       <Drawer
          drawerContent={(props) => <AppDrawerContent {...props} />}
@@ -90,7 +92,7 @@ export default function AppDrawer() {
                backgroundColor: colors.neutral[900],
             },
             drawerLabelStyle: {
-               marginLeft: -30,
+               marginLeft: -10,
                // fontFamily: "PermanentMarker-Regular",
                // fontSize: 22,
             },
@@ -106,11 +108,11 @@ export default function AppDrawer() {
                drawerLabel: "Works",
                title: "",
                drawerIcon: ({ color }) => (
-                  <Icons
+                  <FontAwesome6
                      name="spray-can"
                      size={24}
                      color={color}
-                     className="absolute right-3"
+                     className="absolute right-6"
                   />
                ),
             }}
@@ -122,11 +124,11 @@ export default function AppDrawer() {
                drawerLabel: "Artists",
                title: "",
                drawerIcon: ({ color }) => (
-                  <Icons
+                  <FontAwesome6
                      name="people-group"
                      size={24}
                      color={color}
-                     className="absolute right-3"
+                     className="absolute right-6"
                   />
                ),
             }}
@@ -138,11 +140,11 @@ export default function AppDrawer() {
                drawerLabel: "Tours",
                title: "",
                drawerIcon: ({ color }) => (
-                  <Icons
+                  <FontAwesome6
                      name="person-walking-arrow-right"
                      size={24}
                      color={color}
-                     className="absolute right-3"
+                     className="absolute right-6"
                   />
                ),
             }}
@@ -154,12 +156,12 @@ export default function AppDrawer() {
                drawerLabel: "20 years",
                title: "",
                drawerIcon: ({ color }) => (
-                  <Icons
+                  <FontAwesome6
                      // book-open-reader
                      name="cake-candles"
                      size={24}
                      color={color}
-                     className="absolute right-4"
+                     className="absolute right-8"
                   />
                ),
             }}
@@ -170,11 +172,11 @@ export default function AppDrawer() {
                drawerLabel: "About",
                title: "",
                drawerIcon: ({ color }) => (
-                  <Icons
+                  <FontAwesome6
                      name="circle-info"
                      size={24}
                      color={color}
-                     className="absolute right-4"
+                     className="absolute right-8"
                   />
                ),
             }}
