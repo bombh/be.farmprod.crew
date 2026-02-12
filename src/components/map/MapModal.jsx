@@ -1,12 +1,12 @@
 import { View, Text, Pressable, Platform, Linking } from "react-native"
-import React, { forwardRef, useCallback, useMemo } from "react"
-import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
+import React, { useCallback, useMemo } from "react"
+import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Image } from "expo-image"
 import { FontAwesome6 } from "@expo/vector-icons"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
-const MapModal = forwardRef(({ place }, ref) => {
+const MapModal = ({ place, onClose }) => {
    const snapPoints = useMemo(() => ["75%"], [])
 
    // Open Maps/Plan to visit
@@ -41,20 +41,21 @@ const MapModal = forwardRef(({ place }, ref) => {
    return (
       <BottomSheet
          snapPoints={snapPoints}
-         ref={ref}
-         index={-1}
+         index={0}
+         enableDynamicSizing={false}
          enablePanDownToClose={true}
+         onClose={onClose}
          backdropComponent={renderBackdrop}
          backgroundStyle={{ backgroundColor: "#333" }}
          handleComponent={null}
       >
-         <BottomSheetView className="relative bg-white rounded-xl rounded-b-none">
+         <View className="flex-1 relative bg-white rounded-t-xl overflow-hidden">
             {/* Image */}
             <Image
                source={{
                   uri: `https://map.farmprod.be/street-art-map-olln/public/img/art/${place.image}`,
                }}
-               className="w-full h-full rounded-xl rounded-b-none"
+               className="w-full h-full rounded-t-xl"
                placeholder={placeholder}
                placeholderContentFit="cover"
                transition={500}
@@ -91,9 +92,9 @@ const MapModal = forwardRef(({ place }, ref) => {
                   color="white"
                />
             </Pressable>
-         </BottomSheetView>
+         </View>
       </BottomSheet>
    )
-})
+}
 
 export default MapModal
