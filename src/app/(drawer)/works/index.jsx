@@ -34,11 +34,10 @@ export default function Screen() {
             return true
          }
 
-         BackHandler.addEventListener("hardwareBackPress", onBackPress)
-
-         // Remove event listener on cleanup
-         return () => BackHandler.removeEventListener("hardwareBackPress", onBackPress)
-      }, [])
+         const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress)
+         // Clean up the event listener when the screen is unfocused
+         return () => subscription.remove()
+      }, []),
    )
 
    return (
