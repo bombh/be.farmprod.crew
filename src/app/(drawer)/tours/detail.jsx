@@ -1,7 +1,6 @@
 import { View } from "react-native"
 import { useLocalSearchParams } from "expo-router"
-import { useRef, useState } from "react"
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import { useState } from "react"
 import { AnimatePresence, MotiView } from "moti"
 
 import HeaderBack from "@/src/layouts/HeaderBack"
@@ -17,10 +16,8 @@ const logo_kosmo = require("@/assets/images/logo_kosmo.png")
 export default function Screen() {
    // States
    const [place, setPlace] = useState({})
+   const [showModal, setShowModal] = useState(false)
    const { isTransitionEnd } = useTransitionEnd()
-
-   // Refs
-   const _bottomSheet = useRef(null)
 
    // Hooks
    const params = useLocalSearchParams()
@@ -44,7 +41,7 @@ export default function Screen() {
       }
 
       setPlace(point)
-      _bottomSheet.current?.snapToIndex(0)
+      setShowModal(true)
    }
 
    return (
@@ -76,11 +73,12 @@ export default function Screen() {
                )}
             </AnimatePresence>
          </View>
-         {/* Map modal */}
-         <MapModal
-            ref={_bottomSheet}
-            place={place}
-         />
+         {showModal && (
+            <MapModal
+               place={place}
+               onClose={() => setShowModal(false)}
+            />
+         )}
       </>
    )
 }
