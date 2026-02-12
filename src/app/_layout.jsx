@@ -6,10 +6,12 @@ import { Slot, SplashScreen } from "expo-router"
 import { useFonts } from "expo-font"
 import { useEffect } from "react"
 import { Image } from "expo-image"
+import MapView from "react-native-maps"
 import { cssInterop } from "nativewind"
 
 // Register third-party components for NativeWind v4 className support
 cssInterop(Image, { className: "style" })
+cssInterop(MapView, { className: "style" })
 
 SplashScreen.preventAutoHideAsync()
 
