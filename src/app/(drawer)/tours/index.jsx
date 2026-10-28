@@ -1,26 +1,23 @@
 import { ScrollView } from "react-native"
-import { useRouter } from "expo-router"
+import { useRef } from "react"
 
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import TourCard from "@/src/components/TourCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import { SafeAreaView } from "react-native-safe-area-context"
+import useMenuReset from "@/src/hooks/useMenuReset"
 
 export default function Screen() {
-   const router = useRouter()
-
-   // const showTour = (tour) => {
-   //    router.navigate({
-   //       pathname: `tours/detail`,
-   //       params: { tour: tour },
-   //    })
-   // }
+   const scrollRef = useRef(null)
+   useMenuReset(scrollRef)
 
    return (
       <>
          <HeaderDrawer />
 
-         <ScrollView className="flex-1 px-5 bg-white">
+         <ScrollView
+            ref={scrollRef}
+            className="flex-1 px-5 bg-white dark:bg-neutral-950"
+         >
             <ScreenTitle title="Tours" />
 
             <TourCard

@@ -1,23 +1,24 @@
 import { View } from "react-native"
 import { FlashList } from "@shopify/flash-list"
-import { useRouter } from "expo-router"
 import useAPI from "@/src/hooks/useAPI"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import ArtistCard from "@/src/components/ArtistCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import Loading from "@/src/components/app/Loading"
 import { AnimatePresence, MotiView } from "moti"
+import { useRef } from "react"
+import useMenuReset from "@/src/hooks/useMenuReset"
 
 export default function Screen() {
-   const router = useRouter()
-
    const { data, isLoading, isError, refetch } = useAPI("GET", "authors", "limit=15")
+   const listRef = useRef(null)
+   useMenuReset(listRef)
 
    return (
       <>
          <HeaderDrawer />
 
-         <View className="flex-1 px-3 bg-white">
+         <View className="flex-1 px-3 bg-white dark:bg-neutral-950">
             <AnimatePresence exitBeforeEnter>
                {(isLoading || isError) && (
                   <Loading
@@ -34,6 +35,7 @@ export default function Screen() {
                      className="flex-1"
                   >
                      <FlashList
+                        ref={listRef}
                         data={data.authors}
                         renderItem={({ item, index }) => (
                            <ArtistCard
@@ -42,33 +44,12 @@ export default function Screen() {
                            />
                         )}
                         keyExtractor={(item) => item.id}
-                        estimatedItemSize={225}
-                        //initialNumToRender={5}
                         ListHeaderComponent={<ScreenTitle title="Artists" />}
                         scrollEventThrottle={16}
                      />
                   </MotiView>
                )}
             </AnimatePresence>
-
-            {/* {isLoading || 1 === 1 ? (
-               <Loading label="Loading Artists" />
-            ) : (
-               <FlashList
-                  data={data.authors}
-                  renderItem={({ item, index }) => (
-                     <ArtistCard
-                        {...item}
-                        index={index}
-                     />
-                  )}
-                  keyExtractor={(item) => item.id}
-                  estimatedItemSize={225}
-                  //initialNumToRender={5}
-                  ListHeaderComponent={<ScreenTitle title="Artists" />}
-                  scrollEventThrottle={16}
-               />
-            )} */}
          </View>
       </>
    )

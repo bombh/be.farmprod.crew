@@ -1,10 +1,18 @@
 import { Drawer } from "expo-router/drawer"
 import { FontAwesome6 } from "@expo/vector-icons"
 import colors from "tailwindcss/colors"
-import { cssInterop } from "nativewind"
+import { cssInterop, useColorScheme } from "nativewind"
 import { View, Text, Image, Pressable } from "react-native"
 import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer"
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native"
 import * as Linking from "expo-linking"
+import { setThemePreference } from "@/src/lib/theme"
+
+// Drawer swipe only on list screens, so the iOS swipe-back works on detail screens
+const isListScreen = (route) => {
+   const focused = getFocusedRouteNameFromRoute(route)
+   return focused === undefined || focused === "index"
+}
 
 cssInterop(FontAwesome6, {
    className: {
@@ -23,7 +31,52 @@ const openWebOrApp = async (webUrl, appUrl) => {
       } else {
          await Linking.openURL(webUrl)
       }
-   } catch (error) {}
+   } catch {}
+}
+
+// Theme setting: Light / Dark (persisted, see src/lib/theme.js)
+// Preselected with the OS theme until the user picks one
+const THEMES = [
+   { value: "light", label: "Light", icon: "sun" },
+   { value: "dark", label: "Dark", icon: "moon" },
+]
+
+const ThemeSwitch = () => {
+   const { colorScheme } = useColorScheme()
+
+   return (
+      <View
+         className="mx-5 mb-6 flex-row rounded-full bg-neutral-800 p-1"
+         accessibilityRole="radiogroup"
+         accessibilityLabel="Appearance"
+      >
+         {THEMES.map((theme) => {
+            const selected = colorScheme === theme.value
+            return (
+               <Pressable
+                  key={theme.value}
+                  className={`flex-1 items-center rounded-full py-1.5 active:opacity-70 ${selected ? "bg-neutral-600" : ""}`}
+                  onPress={() => setThemePreference(theme.value)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${theme.label} appearance`}
+                  accessibilityState={{ checked: selected }}
+               >
+                  <FontAwesome6
+                     name={theme.icon}
+                     size={14}
+                     color={selected ? colors.white : colors.neutral[400]}
+                  />
+                  <Text
+                     className={`mt-0.5 text-[10px] ${selected ? "text-white" : "text-neutral-400"}`}
+                     maxFontSizeMultiplier={1.4}
+                  >
+                     {theme.label}
+                  </Text>
+               </Pressable>
+            )
+         })}
+      </View>
+   )
 }
 
 // Drawer content
@@ -35,6 +88,7 @@ const AppDrawerContent = (props) => {
                <Image
                   source={logo}
                   className="w-32 h-32"
+                  accessible={false}
                />
             </View>
 
@@ -47,6 +101,9 @@ const AppDrawerContent = (props) => {
                onPress={() => {
                   openWebOrApp("https://www.facebook.com/FarmProd/", "fb://profile/166003850137702")
                }}
+               accessibilityRole="link"
+               accessibilityLabel="Farm Prod on Facebook"
+               hitSlop={8}
             >
                <FontAwesome6
                   name="facebook"
@@ -58,8 +115,11 @@ const AppDrawerContent = (props) => {
 
             <Pressable
                onPress={() => {
-                  openWebOrApp("https://www.instagram.com/farmprod/,", "instagram://user?username=farmprod")
+                  openWebOrApp("https://www.instagram.com/farmprod/", "instagram://user?username=farmprod")
                }}
+               accessibilityRole="link"
+               accessibilityLabel="Farm Prod on Instagram"
+               hitSlop={8}
             >
                <FontAwesome6
                   name="instagram"
@@ -70,9 +130,11 @@ const AppDrawerContent = (props) => {
             </Pressable>
          </View>
 
-         <View className="mb-12">
-            <Text className="text-neutral-500 text-center text-xs">Follow us on social networks</Text>
+         <View className="mb-10">
+            <Text className="text-neutral-400 text-center text-xs">Follow us on social networks</Text>
          </View>
+
+         <ThemeSwitch />
       </>
    )
 }
@@ -81,7 +143,8 @@ export default function AppDrawer() {
    return (
       <Drawer
          drawerContent={(props) => <AppDrawerContent {...props} />}
-         screenOptions={{
+         screenOptions={({ route }) => ({
+            swipeEnabled: isListScreen(route),
             headerShown: false,
             drawerType: "slide",
             headerTintColor: colors.black,
@@ -99,7 +162,7 @@ export default function AppDrawer() {
             drawerActiveTintColor: colors.white,
             drawerActiveBackgroundColor: colors.neutral[700],
             drawerInactiveTintColor: colors.neutral[400],
-         }}
+         })}
          initialRouteName="works"
       >
          <Drawer.Screen

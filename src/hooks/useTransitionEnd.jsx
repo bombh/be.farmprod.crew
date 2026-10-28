@@ -10,9 +10,8 @@ const useTransitionEnd = () => {
    const navigation = useNavigation()
 
    useEffect(() => {
-      const unsubscribe = navigation.addListener("transitionEnd", (e) => {
+      const unsubscribe = navigation.addListener("transitionEnd", () => {
          setIsTransitionEnd(true)
-         //console.log("Transition end")
       })
 
       return unsubscribe

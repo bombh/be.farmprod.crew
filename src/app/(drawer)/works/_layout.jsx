@@ -1,4 +1,5 @@
 import { Stack } from "expo-router"
+import { zoomDetailScreenOptions } from "@/src/hooks/useZoomTransition"
 
 const Layout = () => {
    return (
@@ -8,7 +9,11 @@ const Layout = () => {
          }}
       >
          <Stack.Screen name="index" />
-         <Stack.Screen name="detail" />
+         {/* Zoom transition (ENABLE_ZOOM_TRANSITION): transparent modal, the Works list stays visible underneath */}
+         <Stack.Screen
+            name="detail"
+            options={zoomDetailScreenOptions}
+         />
          <Stack.Screen
             name="pictures"
             options={{ presentation: "fullScreenModal" }}

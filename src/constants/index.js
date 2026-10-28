@@ -1,4 +1,4 @@
 import { animations } from "./animations"
-import { test } from "./test" // Example for other constants
+import { ENABLE_ZOOM_TRANSITION } from "./features"
 
-export { animations, test }
+export { animations, ENABLE_ZOOM_TRANSITION }

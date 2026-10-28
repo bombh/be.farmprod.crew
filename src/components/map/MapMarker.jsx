@@ -11,16 +11,18 @@ const MapMarker = ({ point, index, onPress }) => {
             longitude: point.geo.lng,
          }}
          tracksViewChanges={false}
+         // iOS: classic pins, the default marker views hide the ones that overlap (only ~10 of 35 shown in the center)
+         useLegacyPinView
          pinColor={
             point.group === "fpolln"
                ? "black"
                : point.group === "kosmo12"
-               ? "turquoise"
-               : point.group === "kosmo15"
-               ? "tomato"
-               : point.group === "statue"
-               ? "indigo"
-               : "yellow"
+                 ? "turquoise"
+                 : point.group === "kosmo15"
+                   ? "tomato"
+                   : point.group === "statue"
+                     ? "indigo"
+                     : "yellow"
          }
       />
    )

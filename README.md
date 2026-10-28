@@ -1,50 +1,72 @@
-# Welcome to your Expo app 👋
+# Farm Prod Crew
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile app for the **Farm Prod** street art collective: browse the collective's works and artists, follow street art
+tours on interactive maps, and discover the 20-year anniversary book and exhibition.
 
-## Get started
+Content (works, artists, pages) comes from the collective's headless **Ghost CMS**; tour map data comes from
+`map.farmprod.be`.
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
-   ```
+- [Expo](https://expo.dev) SDK 54, React 19.1, React Native 0.81
+- [expo-router](https://docs.expo.dev/router/introduction/) v6 (file-based routing, drawer navigation via React Navigation v7)
+- [NativeWind](https://www.nativewind.dev/) v4 (Tailwind CSS via `className`)
+- axios, @shopify/flash-list, expo-image, moti, react-native-reanimated v4, react-native-maps, @gorhom/bottom-sheet,
+  react-native-awesome-gallery
 
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+`.npmrc` sets `legacy-peer-deps=true` (needed for `react-native-awesome-gallery`).
 
-## Learn more
+Create a `.env` file at the project root with the Ghost Content API settings:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://your-ghost-site/ghost/api/content/
+EXPO_PUBLIC_API_KEY=your-ghost-content-api-key
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Scripts
 
-## Join the community
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `npm start`       | Start the Expo dev server (clears cache) |
+| `npm run ios`     | Start and open on the iOS simulator      |
+| `npm run android` | Start and open on the Android emulator   |
+| `npm run web`     | Start and open in the browser            |
+| `npm run lint`    | Run the Expo linter                      |
+| `npm test`        | Run Jest in watch mode                   |
 
-Join our community of developers creating universal apps.
+## Project structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/
+  app/              Routes (expo-router); (drawer)/ holds works, artists, tours, 20years, about
+  components/       Feature cards (WorkCard, ArtistCard, TourCard)
+    app/            Shared UI (Loading, RenderHtml, ScreenTitle)
+    map/            Map, MapMarker, MapModal
+  constants/        Shared Moti animation configs
+  data/             Static data (map style)
+  hooks/            useAPI (Ghost CMS), useFetch (tour data), useTransitionEnd
+  layouts/          Navigation layouts (AppDrawer, HeaderDrawer, HeaderBack, StackNoHeader)
+  screens/          Reusable screens (Gallery)
+  utils/html.js     Ghost HTML parsing helpers
+assets/             Fonts and images
+```
+
+## Builds (EAS)
+
+Build profiles are defined in `eas.json`:
+
+| Profile       | Use                                        |
+| ------------- | ------------------------------------------ |
+| `development` | Development client, internal distribution  |
+| `preview`     | Internal distribution for testing          |
+| `production`  | Store build, build number auto-incremented |
+
+```bash
+eas build --profile preview --platform ios
+```

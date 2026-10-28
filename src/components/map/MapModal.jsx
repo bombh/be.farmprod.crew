@@ -3,11 +3,20 @@ import React, { useCallback, useMemo } from "react"
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Image } from "expo-image"
 import { FontAwesome6 } from "@expo/vector-icons"
+import { getDistance, formatDistance } from "@/src/utils/geo"
+import useThemeColors from "@/src/hooks/useThemeColors"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
-const MapModal = ({ place, onClose }) => {
+const MapModal = ({ place, onClose, userLocation = null }) => {
    const snapPoints = useMemo(() => ["75%"], [])
+   const theme = useThemeColors()
+
+   // Distance as the crow flies from the user to the place
+   const distance =
+      userLocation && place.geo
+         ? formatDistance(getDistance(userLocation, { latitude: place.geo.lat, longitude: place.geo.lng }))
+         : null
 
    // Open Maps/Plan to visit
    const openURL = (point) => {
@@ -35,7 +44,7 @@ const MapModal = ({ place, onClose }) => {
             {...props}
          />
       ),
-      []
+      [],
    )
 
    return (
@@ -46,10 +55,10 @@ const MapModal = ({ place, onClose }) => {
          enablePanDownToClose={true}
          onClose={onClose}
          backdropComponent={renderBackdrop}
-         backgroundStyle={{ backgroundColor: "#333" }}
+         backgroundStyle={{ backgroundColor: theme.surface }}
          handleComponent={null}
       >
-         <View className="flex-1 relative bg-white rounded-t-xl overflow-hidden">
+         <View className="flex-1 relative bg-white dark:bg-neutral-900 rounded-t-xl overflow-hidden">
             {/* Image */}
             <Image
                source={{
@@ -59,6 +68,7 @@ const MapModal = ({ place, onClose }) => {
                placeholder={placeholder}
                placeholderContentFit="cover"
                transition={500}
+               accessibilityLabel={place.name ? `Artwork: ${place.name}` : "Artwork"}
             />
 
             {/* Text */}
@@ -67,13 +77,35 @@ const MapModal = ({ place, onClose }) => {
                   <Image
                      source={place.logo}
                      className="w-28 h-28 mx-auto mb-4"
+                     accessible={false}
                   />
                )}
-               <Text className="text-white font-marker text-center text-xl">{place.name}</Text>
+               <Text
+                  className="text-white font-marker text-center text-xl"
+                  accessibilityRole="header"
+               >
+                  {place.name}
+               </Text>
 
                <Text className="text-white text-center mt-2 text-md">{place.place}</Text>
 
                {place.comment && <Text className="text-white text-center mt-2 text-xs">{place.comment}</Text>}
+
+               {distance && (
+                  <View className="flex-row items-center justify-center gap-2 mt-3">
+                     <FontAwesome6
+                        name="person-walking"
+                        size={14}
+                        color="white"
+                     />
+                     <Text
+                        className="text-white text-center text-sm"
+                        accessibilityLabel={`${distance} from your location`}
+                     >
+                        {distance}
+                     </Text>
+                  </View>
+               )}
             </View>
 
             {/* Indicator line */}
@@ -84,6 +116,8 @@ const MapModal = ({ place, onClose }) => {
             {/* Open Maps app */}
             <Pressable
                onPress={() => openURL(place)}
+               accessibilityRole="button"
+               accessibilityLabel={`Directions to ${place.place || place.name || "this place"}`}
                className="absolute bg-black/70 active:bg-black top-5 right-5 w-16 h-16 rounded-full flex items-center justify-center"
             >
                <FontAwesome6

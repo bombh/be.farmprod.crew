@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-React Native mobile app built with **Expo SDK 51** and **expo-router** for the Farm Prod street art collective. Showcases works, artists, tours (interactive maps), and a 20-year anniversary section. Content is managed via a headless **Ghost CMS** API.
+React Native mobile app built with **Expo SDK 54** (React 19.1, React Native 0.81) and **expo-router v6** (React Navigation v7) for the Farm Prod street art collective. Showcases works, artists, tours (interactive maps), and a 20-year anniversary section. Content is managed via a headless **Ghost CMS** API.
 
 ## Commands
 
@@ -38,13 +38,21 @@ Two custom hooks in `src/hooks/`:
 - **`useAPI`** — fetches from Ghost CMS (`/ghost/api/content/`). Takes HTTP method, endpoint, and optional query params. Ghost posts = works, authors = artists, pages = static content.
 - **`useFetch`** — generic fetch for external JSON (tour map data from `map.farmprod.be`).
 
-Both return `{ data, isLoading, error, isError, refetch }`.
+Both use **axios**, refetch when their inputs change, abort in-flight requests on unmount (AbortController), and return `{ data, isLoading, error, isError, refetch }`.
 
 API credentials are in `.env` as `EXPO_PUBLIC_API_BASE_URL` and `EXPO_PUBLIC_API_KEY`.
 
 ### Styling
 
-**NativeWind v2** (Tailwind CSS for React Native) with config in `tailwind.config.js`. Custom font: `PermanentMarker-Regular`. Babel plugin configured in `babel.config.js`.
+**NativeWind v4** (Tailwind CSS for React Native, `className` prop) with config in `tailwind.config.js`.
+Very important to use NativeWind whenever it is possible, and avoiding classic style.
+Custom font: `PermanentMarker-Regular`.
+
+- `metro.config.js` wraps the config with `withNativeWind(config, { input: "./global.css" })`
+- `global.css` holds the Tailwind directives and is imported in `src/app/_layout.jsx`
+- `babel.config.js`: `babel-preset-expo` with `jsxImportSource: "nativewind"` + `nativewind/babel` preset
+- Third-party components need `cssInterop()` to accept `className` (expo-image `Image` and `MapView` in `src/app/_layout.jsx`, `FontAwesome6` in `AppDrawer.jsx`)
+- Use `gap-*` instead of `space-x-*` / `space-y-*`
 
 ### Key Libraries
 
@@ -53,7 +61,8 @@ API credentials are in `.env` as `EXPO_PUBLIC_API_BASE_URL` and `EXPO_PUBLIC_API
 - **moti** — declarative animations (entry animations on list items, elastic easing)
 - **react-native-maps** — interactive tour maps with custom markers
 - **@gorhom/bottom-sheet** — modal sheets on map detail views
-- **react-native-awesome-gallery** — zoomable image galleries
+- **react-native-awesome-gallery** — zoomable image galleries (peer dep on reanimated v3, hence `legacy-peer-deps=true` in `.npmrc`)
+- **react-native-reanimated v4** + **react-native-worklets** (required peer dep)
 
 ### Component Organization
 

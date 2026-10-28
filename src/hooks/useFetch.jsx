@@ -1,54 +1,37 @@
-import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
+
+import { toLegacyResult } from "@/src/lib/queryClient"
 
 const baseUrl = "https://map.farmprod.be/street-art-map-olln/public/"
 
+const headers = {
+   "Content-Type": "application/json",
+}
+
+const EMPTY_DATA = {}
+
+/**
+ * Generic JSON fetch (tour map data), cached + persisted through TanStack Query.
+ * Returns { data, isLoading, error, isError, refetch } (data is {} until loaded).
+ */
 const useFetch = (endpoint) => {
-   const [data, setData] = useState({})
-   const [isLoading, setIsLoading] = useState(true)
-   const [error, setError] = useState(null)
-   const [isError, setIsError] = useState(false)
+   const url = `${baseUrl}${endpoint}`
 
-   const options = {
-      method: "GET",
-      url: `${baseUrl}${endpoint}`,
-      headers: {
-         "Content-Type": "application/json",
+   const result = useQuery({
+      queryKey: ["fetch", url],
+      queryFn: async ({ signal }) => {
+         const response = await axios.request({
+            method: "GET",
+            url,
+            headers,
+            signal,
+         })
+         return response.data
       },
-   }
+   })
 
-   //console.log(`Render useFetch ${options.url} ... loading`, isLoading)
-
-   const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
-      setIsError(false)
-
-      try {
-         const result = await axios.request(options)
-         setData(result.data)
-         //console.log("useFetch", result.data)
-      } catch (error) {
-         //console.log(error)
-         setError(error)
-         setIsError(true)
-         //alert("Error fetching data, please try again later...")
-      } finally {
-         setIsLoading(false)
-      }
-   }
-
-   useEffect(() => {
-      fetchData()
-   }, [])
-
-   const refetch = () => {
-      setIsLoading(true)
-      setIsError(false)
-      fetchData()
-   }
-
-   return { data, isLoading, error, isError, refetch }
+   return toLegacyResult(result, EMPTY_DATA)
 }
 
 export default useFetch
