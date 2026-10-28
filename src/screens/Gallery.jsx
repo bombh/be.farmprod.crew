@@ -1,53 +1,45 @@
 import { useLocalSearchParams, useNavigation } from "expo-router"
-import { useRef } from "react"
-import { StyleSheet, View } from "react-native"
-import AwesomeGallery from "react-native-awesome-gallery"
+import { useCallback } from "react"
+import { View } from "react-native"
+import { GestureViewer } from "react-native-gesture-image-viewer"
 import { Image } from "expo-image"
 
-// Render Image
-const renderItem = ({ item, setImageDimensions }) => {
-   return (
-      <Image
-         source={item}
-         style={StyleSheet.absoluteFillObject}
-         contentFit="contain"
-         accessibilityLabel="Image"
-         onLoad={(e) => {
-            const { width, height } = e.source
-            setImageDimensions({ width, height })
-         }}
-      />
-   )
-}
+// Space between two images while swiping
+const PAGE_SPACING = 30
 
 const Gallery = () => {
    const { index, images } = useLocalSearchParams()
-
-   const gallery = useRef(null)
    const { goBack } = useNavigation()
 
    // Images are passed as a comma-separated string (or an array) through navigation params
    const data = Array.isArray(images) ? images : (images ?? "").split(",").filter(Boolean)
 
+   // Render Image: its natural size sets the zoom bounds
+   const renderItem = useCallback(
+      (item, _index, { setItemDimensions }) => (
+         <Image
+            source={item}
+            className="w-full h-full"
+            contentFit="contain"
+            accessibilityLabel="Image"
+            onLoad={(e) => {
+               const { width, height } = e.source
+               setItemDimensions({ width, height })
+            }}
+         />
+      ),
+      [],
+   )
+
    return (
       <View className="bg-black flex-1">
-         <AwesomeGallery
-            ref={gallery}
+         <GestureViewer
             data={data}
-            keyExtractor={(item) => item}
-            renderItem={renderItem}
             initialIndex={Number(index) || 0}
-            numToRender={3}
-            doubleTapInterval={150}
-            onSwipeToClose={goBack}
-            onScaleEnd={(scale) => {
-               if (scale < 0.7) {
-                  goBack()
-               }
-            }}
-            disableTransitionOnScaledImage
-            hideAdjacentImagesOnScaledImage
-            loop
+            renderItem={renderItem}
+            onDismiss={goBack}
+            pageSpacing={PAGE_SPACING}
+            enableLoop
          />
       </View>
    )

@@ -2,7 +2,7 @@ import { View, Text, Pressable, Platform, Linking } from "react-native"
 import React, { useCallback, useMemo } from "react"
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Image } from "expo-image"
-import { FontAwesome6 } from "@expo/vector-icons"
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import { getDistance, formatDistance } from "@/src/utils/geo"
 import useThemeColors from "@/src/hooks/useThemeColors"
 
@@ -95,6 +95,7 @@ const MapModal = ({ place, onClose, userLocation = null }) => {
                   <View className="flex-row items-center justify-center gap-2 mt-3">
                      <FontAwesome6
                         name="person-walking"
+                        iconStyle="solid"
                         size={14}
                         color="white"
                      />
@@ -122,6 +123,7 @@ const MapModal = ({ place, onClose, userLocation = null }) => {
             >
                <FontAwesome6
                   name="person-walking-arrow-right"
+                  iconStyle="solid"
                   size={28}
                   color="white"
                />

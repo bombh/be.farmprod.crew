@@ -1,6 +1,6 @@
 import { forwardRef } from "react"
 import { Pressable, Text, View } from "react-native"
-import { FontAwesome6 } from "@expo/vector-icons"
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import colors from "tailwindcss/colors"
 import useThemeColors from "@/src/hooks/useThemeColors"
 
@@ -23,6 +23,7 @@ const Chip = forwardRef(({ label, icon, selected = false, onPress, accessibility
          {!!icon && (
             <FontAwesome6
                name={icon}
+               iconStyle="solid"
                size={12}
                color={textColor}
             />

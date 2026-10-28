@@ -1,14 +1,14 @@
 import { ActivityIndicator, BackHandler, Pressable, Text, View } from "react-native"
 import { FlashList } from "@shopify/flash-list"
-import { FontAwesome6 } from "@expo/vector-icons"
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 
 import { useInfiniteAPI } from "@/src/hooks/useAPI"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import WorkCard from "@/src/components/WorkCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import Loading from "@/src/components/app/Loading"
+import LoadingGate from "@/src/components/app/LoadingGate"
+import MotionView from "@/src/components/app/MotionView"
 import { filterWorks } from "@/src/utils/works"
-import { MotiView, AnimatePresence } from "moti"
 import { useFocusEffect } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import useThemeColors from "@/src/hooks/useThemeColors"
@@ -258,6 +258,7 @@ export default function Screen() {
          <View className="py-12 items-center">
             <FontAwesome6
                name="magnifying-glass"
+               iconStyle="solid"
                size={28}
                color={theme.emptyIcon}
             />
@@ -273,7 +274,7 @@ export default function Screen() {
             <ScreenTitle title="Works" />
             {/* Clears both filters (bottom-4: ScreenTitle bottom margin + padding), only while a filter is active */}
             {isFiltering && (
-               <MotiView
+               <MotionView
                   key={animateHeader ? `all-${filter.slug}` : "all"}
                   pointerEvents="box-none"
                   className="absolute left-0 top-0 bottom-4 justify-center"
@@ -287,7 +288,7 @@ export default function Screen() {
                         accessibilityLabel="Show all works"
                      />
                   </Animated.View>
-               </MotiView>
+               </MotionView>
             )}
          </View>
 
@@ -302,7 +303,7 @@ export default function Screen() {
                   if (headerExit.value === 0) subtitleHeight.value = event.nativeEvent.layout.height
                }}
             >
-               <MotiView
+               <MotionView
                   key={animateHeader ? `subtitle-${filter.slug}` : "subtitle"}
                   {...(animateHeader ? SUBTITLE_ENTRY : {})}
                >
@@ -314,7 +315,7 @@ export default function Screen() {
                   >
                      {filter.label}
                   </Text>
-               </MotiView>
+               </MotionView>
             </Animated.View>
          )}
 
@@ -340,21 +341,14 @@ export default function Screen() {
          <HeaderDrawer />
 
          <View className="flex-1 px-5 bg-white dark:bg-neutral-950">
-            <AnimatePresence exitBeforeEnter>
-               {(isLoading || isError) && (
-                  <Loading
-                     key="loadingWorks"
-                     label="Loading Works"
-                     isError={isError}
-                     refetch={refetch}
-                  />
-               )}
-
-               {!isLoading && !isError && (
-                  <MotiView
-                     key="dataList"
-                     className="flex-1"
-                  >
+            <LoadingGate
+               isLoading={isLoading}
+               isError={isError}
+               label="Loading Works"
+               refetch={refetch}
+            >
+               {() => (
+                  <View className="flex-1">
                      <FlashList
                         ref={listRef}
                         data={visiblePosts}
@@ -370,9 +364,9 @@ export default function Screen() {
                         ListHeaderComponent={listHeader}
                         ListEmptyComponent={renderEmpty}
                      />
-                  </MotiView>
+                  </View>
                )}
-            </AnimatePresence>
+            </LoadingGate>
          </View>
       </>
    )

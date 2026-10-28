@@ -1,6 +1,5 @@
 /* global describe, it, expect, jest, beforeEach */
-// Note: @testing-library/react-native v14 needs the `test-renderer` peer dependency, which is not installed.
-// These tests use react-test-renderer (already installed) with small query helpers instead.
+// These tests use react-test-renderer with small query helpers (no @testing-library/react-native).
 import { act, create } from "react-test-renderer"
 import { Linking } from "react-native"
 import RenderHtml from "@/src/components/app/RenderHtml"

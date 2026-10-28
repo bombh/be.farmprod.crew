@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "scheme": "farmprod",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -37,7 +32,21 @@
         {
           "locationWhenInUsePermission": "Farm Prod uses your location to show where you are on street art tours."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "enableFullScreenImage_legacy": true
+        }
+      ],
+      "@react-native-vector-icons/fontawesome6",
+      "@react-native-vector-icons/material-icons"
     ],
     "experiments": {
       "typedRoutes": true

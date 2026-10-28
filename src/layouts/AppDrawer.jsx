@@ -1,18 +1,11 @@
-import { Drawer } from "expo-router/drawer"
-import { FontAwesome6 } from "@expo/vector-icons"
+import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer"
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import colors from "tailwindcss/colors"
 import { cssInterop, useColorScheme } from "nativewind"
 import { View, Text, Image, Pressable } from "react-native"
-import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer"
-import { getFocusedRouteNameFromRoute } from "@react-navigation/native"
+import { useSegments } from "expo-router"
 import * as Linking from "expo-linking"
 import { setThemePreference } from "@/src/lib/theme"
-
-// Drawer swipe only on list screens, so the iOS swipe-back works on detail screens
-const isListScreen = (route) => {
-   const focused = getFocusedRouteNameFromRoute(route)
-   return focused === undefined || focused === "index"
-}
 
 cssInterop(FontAwesome6, {
    className: {
@@ -107,6 +100,7 @@ const AppDrawerContent = (props) => {
             >
                <FontAwesome6
                   name="facebook"
+                  iconStyle="brand"
                   size={24}
                   color={colors.neutral[400]}
                   className=""
@@ -123,6 +117,7 @@ const AppDrawerContent = (props) => {
             >
                <FontAwesome6
                   name="instagram"
+                  iconStyle="brand"
                   size={24}
                   color={colors.neutral[400]}
                   className=""
@@ -140,11 +135,15 @@ const AppDrawerContent = (props) => {
 }
 
 export default function AppDrawer() {
+   // Drawer swipe only on list screens ("(drawer)/works"), so the iOS swipe-back works on detail screens ("(drawer)/works/detail")
+   const segments = useSegments()
+   const isListScreen = segments.length <= 2
+
    return (
       <Drawer
          drawerContent={(props) => <AppDrawerContent {...props} />}
-         screenOptions={({ route }) => ({
-            swipeEnabled: isListScreen(route),
+         screenOptions={{
+            swipeEnabled: isListScreen,
             headerShown: false,
             drawerType: "slide",
             headerTintColor: colors.black,
@@ -162,7 +161,7 @@ export default function AppDrawer() {
             drawerActiveTintColor: colors.white,
             drawerActiveBackgroundColor: colors.neutral[700],
             drawerInactiveTintColor: colors.neutral[400],
-         })}
+         }}
          initialRouteName="works"
       >
          <Drawer.Screen
@@ -173,6 +172,7 @@ export default function AppDrawer() {
                drawerIcon: ({ color }) => (
                   <FontAwesome6
                      name="spray-can"
+                     iconStyle="solid"
                      size={24}
                      color={color}
                      className="absolute right-6"
@@ -189,6 +189,7 @@ export default function AppDrawer() {
                drawerIcon: ({ color }) => (
                   <FontAwesome6
                      name="people-group"
+                     iconStyle="solid"
                      size={24}
                      color={color}
                      className="absolute right-6"
@@ -205,6 +206,7 @@ export default function AppDrawer() {
                drawerIcon: ({ color }) => (
                   <FontAwesome6
                      name="person-walking-arrow-right"
+                     iconStyle="solid"
                      size={24}
                      color={color}
                      className="absolute right-6"
@@ -222,6 +224,7 @@ export default function AppDrawer() {
                   <FontAwesome6
                      // book-open-reader
                      name="cake-candles"
+                     iconStyle="solid"
                      size={24}
                      color={color}
                      className="absolute right-8"
@@ -237,6 +240,7 @@ export default function AppDrawer() {
                drawerIcon: ({ color }) => (
                   <FontAwesome6
                      name="circle-info"
+                     iconStyle="solid"
                      size={24}
                      color={color}
                      className="absolute right-8"

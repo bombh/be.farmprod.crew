@@ -1,6 +1,6 @@
 import { Image } from "expo-image"
 import { useRouter } from "expo-router"
-import { MotiView } from "moti"
+import MotionView from "@/src/components/app/MotionView"
 import { Pressable, Text, View } from "react-native"
 import { animations } from "@/src/constants"
 
@@ -26,7 +26,7 @@ export default function TourCard({ id, title, img, index }) {
    const isSoon = !id
 
    return (
-      <MotiView {...anim}>
+      <MotionView {...anim}>
          <Pressable
             className="relative mb-5 active:opacity-70"
             onPress={showDetail}
@@ -54,6 +54,6 @@ export default function TourCard({ id, title, img, index }) {
                </Text>
             </View>
          </Pressable>
-      </MotiView>
+      </MotionView>
    )
 }

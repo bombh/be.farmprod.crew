@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-React Native mobile app built with **Expo SDK 54** (React 19.1, React Native 0.81) and **expo-router v6** (React Navigation v7) for the Farm Prod street art collective. Showcases works, artists, tours (interactive maps), and a 20-year anniversary section. Content is managed via a headless **Ghost CMS** API.
+React Native mobile app built with **Expo SDK 58** (React 19.3, React Native 0.88) and **expo-router** (navigation built in: import from `expo-router`, `expo-router/drawer`, never from `@react-navigation/*`) for the Farm Prod street art collective. Showcases works, artists, tours (interactive maps), and a 20-year anniversary section. Content is managed via a headless **Ghost CMS** API.
 
 ## Commands
 
@@ -58,21 +58,22 @@ Custom font: `PermanentMarker-Regular`.
 
 - **@shopify/flash-list** — performant list rendering (used instead of FlatList)
 - **expo-image** — optimized images with placeholders and size transforms (`/size/w300/`, `/size/w600/`)
-- **moti** — declarative animations (entry animations on list items, elastic easing)
+- **react-native-reanimated** — all animations (entry animations of list items via `MotionView`, elastic easing)
 - **react-native-maps** — interactive tour maps with custom markers
 - **@gorhom/bottom-sheet** — modal sheets on map detail views
-- **react-native-awesome-gallery** — zoomable image galleries (peer dep on reanimated v3, hence `legacy-peer-deps=true` in `.npmrc`)
-- **react-native-reanimated v4** + **react-native-worklets** (required peer dep)
+- **react-native-gesture-image-viewer** — zoomable image galleries (swipe, pinch / double-tap zoom, swipe down to close)
+- **react-native-reanimated v4** + **react-native-worklets** (required peer dep), **react-native-gesture-handler v3**
+- **@react-native-vector-icons/*** — icons (`fontawesome6`, `material-icons`); FontAwesome6 needs `iconStyle="solid"` / `"brand"` (default is regular)
 
 ### Component Organization
 
-- `src/components/app/` — shared UI (Loading, RenderHtml, ScreenTitle)
+- `src/components/app/` — shared UI (Loading, LoadingGate, MotionView, RenderHtml, ScreenTitle)
 - `src/components/map/` — Map, MapMarker, MapModal
 - `src/components/` — feature cards (WorkCard, ArtistCard, TourCard)
 - `src/layouts/` — navigation layouts (AppDrawer, HeaderDrawer, HeaderBack)
 - `src/screens/` — reusable screen components (Gallery)
 - `src/utils/html.js` — HTML parsing/cleaning for Ghost CMS content (extracts images, strips unwanted tags)
-- `src/constants/animations.js` — shared Moti animation configs
+- `src/constants/animations.js` — shared entry animation configs (`from` / `animate` / `transition`, played by `MotionView`)
 
 ### Patterns
 

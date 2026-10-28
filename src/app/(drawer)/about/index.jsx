@@ -4,8 +4,7 @@ import useAPI from "@/src/hooks/useAPI"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import RenderHtml from "@/src/components/app/RenderHtml"
-import Loading from "@/src/components/app/Loading"
-import { AnimatePresence } from "moti"
+import LoadingGate from "@/src/components/app/LoadingGate"
 import { useRef } from "react"
 import useMenuReset from "@/src/hooks/useMenuReset"
 import { ParallaxHeader, ParallaxScrollView } from "@/src/components/app/Parallax"
@@ -22,17 +21,13 @@ export default function Screen() {
          <HeaderDrawer />
 
          <View className="flex-1 bg-white dark:bg-neutral-950">
-            <AnimatePresence exitBeforeEnter>
-               {(isLoading || isError) && (
-                  <Loading
-                     key="loadingAbout"
-                     label="Loading About"
-                     isError={isError}
-                     refetch={refetch}
-                  />
-               )}
-
-               {!isLoading && !isError && (
+            <LoadingGate
+               isLoading={isLoading}
+               isError={isError}
+               label="Loading About"
+               refetch={refetch}
+            >
+               {() => (
                   // Parallaxe: header image zoom and parallax, bands and email button coming in on scroll
                   <ParallaxScrollView ref={scrollRef}>
                      <ScreenTitle title="About" />
@@ -56,7 +51,7 @@ export default function Screen() {
                      </View>
                   </ParallaxScrollView>
                )}
-            </AnimatePresence>
+            </LoadingGate>
          </View>
       </>
    )

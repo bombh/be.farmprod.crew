@@ -4,8 +4,7 @@ import useAPI from "@/src/hooks/useAPI"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import ArtistCard from "@/src/components/ArtistCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import Loading from "@/src/components/app/Loading"
-import { AnimatePresence, MotiView } from "moti"
+import LoadingGate from "@/src/components/app/LoadingGate"
 import { useRef } from "react"
 import useMenuReset from "@/src/hooks/useMenuReset"
 
@@ -19,21 +18,14 @@ export default function Screen() {
          <HeaderDrawer />
 
          <View className="flex-1 px-3 bg-white dark:bg-neutral-950">
-            <AnimatePresence exitBeforeEnter>
-               {(isLoading || isError) && (
-                  <Loading
-                     key="loadingArtists"
-                     label="Loading Artists"
-                     isError={isError}
-                     refetch={refetch}
-                  />
-               )}
-
-               {!isLoading && !isError && (
-                  <MotiView
-                     key="dataList"
-                     className="flex-1"
-                  >
+            <LoadingGate
+               isLoading={isLoading}
+               isError={isError}
+               label="Loading Artists"
+               refetch={refetch}
+            >
+               {() => (
+                  <View className="flex-1">
                      <FlashList
                         ref={listRef}
                         data={data.authors}
@@ -47,9 +39,9 @@ export default function Screen() {
                         ListHeaderComponent={<ScreenTitle title="Artists" />}
                         scrollEventThrottle={16}
                      />
-                  </MotiView>
+                  </View>
                )}
-            </AnimatePresence>
+            </LoadingGate>
          </View>
       </>
    )

@@ -70,29 +70,4 @@ export const animations = {
          },
       }
    },
-
-   // for logo during screen loading
-   loadingLogo: () => {
-      return {
-         from: {
-            opacity: 0.4,
-            rotate: "0deg",
-            translateY: -40,
-            scale: 0.5,
-         },
-         animate: {
-            opacity: 1,
-            rotate: "360deg",
-            translateY: 0,
-            scale: 1,
-         },
-         transition: {
-            type: "timing",
-            duration: 2500,
-            loop: true,
-            repeatReverse: true,
-            easing: Easing.elastic(3),
-         },
-      }
-   },
 }

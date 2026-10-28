@@ -1,6 +1,6 @@
 import { View, Text } from "react-native"
 import { Image } from "expo-image"
-import { MotiView } from "moti"
+import MotionView from "@/src/components/app/MotionView"
 import { animations } from "@/src/constants"
 
 const placeholder = require("@/assets/images/placeholder.png")
@@ -9,7 +9,7 @@ const ArtistCard = ({ name, profile_image, index }) => {
    const anim = index < 4 ? animations.listItem(index) : {}
 
    return (
-      <MotiView
+      <MotionView
          {...anim}
          className="items-center justify-center mb-5"
       >
@@ -38,7 +38,7 @@ const ArtistCard = ({ name, profile_image, index }) => {
                </Text>
             </View>
          </View>
-      </MotiView>
+      </MotionView>
    )
 }
 

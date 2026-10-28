@@ -1,6 +1,6 @@
 import { Image } from "expo-image"
 import { useRouter } from "expo-router"
-import { MotiView } from "moti"
+import MotionView from "@/src/components/app/MotionView"
 import { memo, useRef } from "react"
 import { Pressable, Text, View } from "react-native"
 import Animated, { useAnimatedStyle } from "react-native-reanimated"
@@ -110,7 +110,7 @@ const WorkCard = ({
       // The key only changes when an entry animation starts (remount to replay it, hidden under the detail page
       // for the chip flight). Not when it stops: remounting then made the images fade in a second time.
       // No per-work key: FlashList keeps recycling the cards instead of remounting them
-      <MotiView
+      <MotionView
          key={entryRun}
          {...anim}
       >
@@ -163,7 +163,7 @@ const WorkCard = ({
                )}
             </Pressable>
          </Animated.View>
-      </MotiView>
+      </MotionView>
    )
 }
 

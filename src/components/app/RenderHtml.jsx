@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Linking } from "react-native"
 import React, { useMemo } from "react"
 import { Image } from "expo-image"
-import { MaterialIcons } from "@expo/vector-icons"
+import MaterialIcons from "@react-native-vector-icons/material-icons"
 import useThemeColors from "@/src/hooks/useThemeColors"
 import {
    cleanHtml,

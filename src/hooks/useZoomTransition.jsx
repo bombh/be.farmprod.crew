@@ -20,8 +20,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BackHandler, Dimensions, Platform } from "react-native"
-import { useNavigation } from "@react-navigation/native"
-import { useFocusEffect } from "expo-router"
+import { useFocusEffect, useNavigation } from "expo-router"
 import { Gesture } from "react-native-gesture-handler"
 import {
    Easing,

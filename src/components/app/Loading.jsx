@@ -1,11 +1,16 @@
 import { View, ActivityIndicator, Image, Text, Pressable } from "react-native"
 import useThemeColors from "@/src/hooks/useThemeColors"
-import { MotiView } from "moti"
-import { useSyncExternalStore } from "react"
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
+import { scheduleOnRN } from "react-native-worklets"
+import { useEffect, useSyncExternalStore } from "react"
 import { onlineManager } from "@tanstack/react-query"
 
 const logo = require("@/assets/images/logo_128.png")
 const logoDark = require("@/assets/images/logo_drawer.png")
+
+// Slides in from the left, slides out to the right
+const SLIDE = 150
+const SLIDE_MS = 250
 
 const useIsOnline = () =>
    useSyncExternalStore(
@@ -14,30 +19,30 @@ const useIsOnline = () =>
       () => true,
    )
 
-const Loading = ({ label, hideLogo, isError, error, refetch }) => {
+// isLeaving: plays the exit animation, then calls onLeft (see LoadingGate)
+const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, onLeft }) => {
    const isOnline = useIsOnline()
    const isOffline = isError && (!isOnline || error?.isOffline)
    const theme = useThemeColors()
 
+   // 0 -> 1: entry, 1 -> 2: exit
+   const progress = useSharedValue(0)
+
+   useEffect(() => {
+      progress.value = withTiming(isLeaving ? 2 : 1, { duration: SLIDE_MS }, (finished) => {
+         if (finished && isLeaving && onLeft) scheduleOnRN(onLeft)
+      })
+   }, [isLeaving, onLeft, progress])
+
+   const style = useAnimatedStyle(() => ({
+      opacity: interpolate(progress.value, [0, 1, 2], [0, 1, 0]),
+      transform: [{ translateX: interpolate(progress.value, [0, 1, 2], [-SLIDE, 0, SLIDE]) }],
+   }))
+
    return (
-      <MotiView
+      <Animated.View
          className="flex-1 items-center justify-center px-5 pb-32"
-         from={{
-            opacity: 0,
-            translateX: -150,
-         }}
-         animate={{
-            opacity: 1,
-            translateX: 0,
-         }}
-         exit={{
-            opacity: 0,
-            translateX: 150,
-         }}
-         transition={{
-            type: "timing",
-            duration: 250,
-         }}
+         style={style}
       >
          {!hideLogo && (
             <>
@@ -86,7 +91,7 @@ const Loading = ({ label, hideLogo, isError, error, refetch }) => {
          ) : (
             <Text className="mt-4 text-neutral-500 dark:text-neutral-400">{label ? label : "Loading"}</Text>
          )}
-      </MotiView>
+      </Animated.View>
    )
 }
 

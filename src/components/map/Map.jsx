@@ -1,7 +1,7 @@
 import React, { forwardRef, memo, useImperativeHandle, useRef } from "react"
 import { View, Pressable } from "react-native"
 import MapView from "react-native-maps"
-import { FontAwesome6 } from "@expo/vector-icons"
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import MapMarker from "./MapMarker"
 import useThemeColors from "@/src/hooks/useThemeColors"
 
@@ -108,6 +108,7 @@ const Map = forwardRef(
                >
                   <FontAwesome6
                      name="location-crosshairs"
+                     iconStyle="solid"
                      size={24}
                      color={theme.actionIcon}
                   />

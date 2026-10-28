@@ -1,6 +1,6 @@
 import { Image, View } from "react-native"
 import { Stack, useNavigation } from "expo-router"
-import { MaterialIcons } from "@expo/vector-icons"
+import MaterialIcons from "@react-native-vector-icons/material-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useThemeColors from "@/src/hooks/useThemeColors"
 import GlassButton from "@/src/components/app/GlassButton"
