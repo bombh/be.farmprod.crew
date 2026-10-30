@@ -42,11 +42,11 @@ export default function GlassButton({
    useEffect(() => () => clearTimeout(actionTimeout.current), [])
 
    const buttonStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: 1 + pressed.value * (PRESSED_SCALE - 1) }],
+      transform: [{ scale: 1 + pressed.get() * (PRESSED_SCALE - 1) }],
    }))
 
    const highlightStyle = useAnimatedStyle(() => ({
-      opacity: Math.min(Math.max(pressed.value, 0), 1),
+      opacity: Math.min(Math.max(pressed.get(), 0), 1),
    }))
 
    return (
@@ -54,11 +54,11 @@ export default function GlassButton({
          className={className}
          style={buttonStyle}
          onPressIn={(event) => {
-            pressed.value = withSpring(1, PRESS_SPRING)
+            pressed.set(withSpring(1, PRESS_SPRING))
             onPressIn?.(event)
          }}
          onPressOut={(event) => {
-            pressed.value = withSequence(withTiming(1, MIN_SWELL), withSpring(0, RELEASE_SPRING))
+            pressed.set(withSequence(withTiming(1, MIN_SWELL), withSpring(0, RELEASE_SPRING)))
             onPressOut?.(event)
          }}
          onPress={(event) => {

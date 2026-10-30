@@ -51,38 +51,38 @@ const useChipFlight = (onLeave) => {
          const to = await requestWorksFilter(chip)
          const canFly = !!(from && root && to)
 
-         page.value = withTiming(1, { duration: PAGE_FADE_DURATION, easing: EASING }, (finished) => {
-            if (finished && !canFly) scheduleOnRN(onLeave)
-         })
+         page.set(
+            withTiming(1, { duration: PAGE_FADE_DURATION, easing: EASING }, (finished) => {
+               if (finished && !canFly) scheduleOnRN(onLeave)
+            }),
+         )
          if (!canFly) {
-            subtitleOpacity.value = 1
+            subtitleOpacity.set(1)
             return
          }
 
-         x.value = from.x + from.width / 2 - root.x
-         y.value = from.y + from.height / 2 - root.y
-         morph.value = 0
+         x.set(from.x + from.width / 2 - root.x)
+         y.set(from.y + from.height / 2 - root.y)
+         morph.set(0)
          setFlyingChip(chip)
 
-         x.value = withTiming(to.x + to.width / 2 - root.x, { duration: FLIGHT_DURATION, easing: EASING })
-         y.value = withTiming(
-            to.y + to.height / 2 - root.y,
-            { duration: FLIGHT_DURATION, easing: EASING },
-            (finished) => {
+         x.set(withTiming(to.x + to.width / 2 - root.x, { duration: FLIGHT_DURATION, easing: EASING }))
+         y.set(
+            withTiming(to.y + to.height / 2 - root.y, { duration: FLIGHT_DURATION, easing: EASING }, (finished) => {
                if (!finished) return
                // The flying text is on the real subtitle: show it, then close the detail page
-               subtitleOpacity.value = 1
+               subtitleOpacity.set(1)
                scheduleOnRN(onLeave)
-            },
+            }),
          )
-         morph.value = withDelay(MORPH_DELAY, withTiming(1, { duration: MORPH_DURATION, easing: EASING }))
+         morph.set(withDelay(MORPH_DELAY, withTiming(1, { duration: MORPH_DURATION, easing: EASING })))
       },
       [onLeave, page, x, y, morph],
    )
 
    const pageStyle = useAnimatedStyle(() => ({
-      opacity: 1 - page.value,
-      transform: [{ scale: 1 - page.value * 0.03 }],
+      opacity: 1 - page.get(),
+      transform: [{ scale: 1 - page.get() * 0.03 }],
    }))
 
    const overlayStyle = useAnimatedStyle(() => ({
@@ -91,17 +91,17 @@ const useChipFlight = (onLeave) => {
       top: 0,
       width: BOX_WIDTH,
       height: BOX_HEIGHT,
-      transform: [{ translateX: x.value - BOX_WIDTH / 2 }, { translateY: y.value - BOX_HEIGHT / 2 }],
+      transform: [{ translateX: x.get() - BOX_WIDTH / 2 }, { translateY: y.get() - BOX_HEIGHT / 2 }],
    }))
 
    const chipStyle = useAnimatedStyle(() => ({
-      opacity: 1 - morph.value,
-      transform: [{ scale: 1 + morph.value * 0.5 }],
+      opacity: 1 - morph.get(),
+      transform: [{ scale: 1 + morph.get() * 0.5 }],
    }))
 
    const textStyle = useAnimatedStyle(() => ({
-      opacity: morph.value,
-      transform: [{ scale: 0.6 + morph.value * 0.4 }],
+      opacity: morph.get(),
+      transform: [{ scale: 0.6 + morph.get() * 0.4 }],
    }))
 
    return { rootRef, flyingChip, start, pageStyle, overlayStyle, chipStyle, textStyle }

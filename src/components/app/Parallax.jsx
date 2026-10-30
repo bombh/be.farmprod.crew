@@ -54,15 +54,23 @@ export function ParallaxScrollView({ ref, children, ...props }) {
             onLayout={parallaxScroll.onLayout}
             {...props}
          >
-            {/* Reveal blocks measure their position in this wrapper (content coordinates) */}
-            <View
-               ref={parallaxScroll.contentRef}
-               collapsable={false}
-            >
-               {children}
-            </View>
+            <ParallaxContent>{children}</ParallaxContent>
          </Animated.ScrollView>
       </ParallaxContext.Provider>
+   )
+}
+
+// Reveal blocks measure their position in this wrapper (content coordinates)
+function ParallaxContent({ children }) {
+   const { contentRef } = useContext(ParallaxContext)
+
+   return (
+      <View
+         ref={contentRef}
+         collapsable={false}
+      >
+         {children}
+      </View>
    )
 }
 
@@ -105,12 +113,12 @@ function MovingHeader({ className, context, ...imageProps }) {
    }
 
    useEffect(() => {
-      arrival.value = withDelay(arrivalDelay, withTiming(1, { duration: arrivalDuration, easing }))
+      arrival.set(withDelay(arrivalDelay, withTiming(1, { duration: arrivalDuration, easing })))
    }, [arrival])
 
    // Pulled down past the top (iOS bounce): the image stays at rest, no gap under it
    const scrollStyle = useAnimatedStyle(() => {
-      const y = Math.max(0, scrollY.value)
+      const y = Math.max(0, scrollY.get())
       return {
          transform: [
             { translateY: y * headerSpeed },
@@ -120,8 +128,8 @@ function MovingHeader({ className, context, ...imageProps }) {
    })
 
    const arrivalStyle = useAnimatedStyle(() => ({
-      opacity: arrival.value,
-      transform: [{ scale: interpolate(arrival.value, [0, 1], [arrivalScale, 1]) }],
+      opacity: arrival.get(),
+      transform: [{ scale: interpolate(arrival.get(), [0, 1], [arrivalScale, 1]) }],
    }))
 
    return (
@@ -184,8 +192,8 @@ function RevealOnScroll({ context, variant, className, children }) {
       ref.current?.measureLayout(
          contentRef.current,
          (x, y, width, blockHeight) => {
-            top.value = y
-            height.value = blockHeight
+            top.set(y)
+            height.set(blockHeight)
          },
          () => {},
       )
@@ -194,31 +202,31 @@ function RevealOnScroll({ context, variant, className, children }) {
    // UI thread: compares the block position with the scroll, until it has been shown once
    useAnimatedReaction(
       () =>
-         !shown.value &&
-         top.value >= 0 &&
-         viewportHeight.value > 0 &&
-         top.value + height.value * revealThreshold <= scrollY.value + viewportHeight.value * (1 - revealBottomMargin),
+         !shown.get() &&
+         top.get() >= 0 &&
+         viewportHeight.get() > 0 &&
+         top.get() + height.get() * revealThreshold <= scrollY.get() + viewportHeight.get() * (1 - revealBottomMargin),
       (visible) => {
          if (!visible) return
-         shown.value = true
+         shown.set(true)
          const delay = nextRevealDelay()
          if (variant === "pop") {
-            progress.value = withDelay(delay, withTiming(1, { duration: popDuration, easing }))
+            progress.set(withDelay(delay, withTiming(1, { duration: popDuration, easing })))
             return
          }
-         progress.value = withDelay(delay, withTiming(1, { duration: bandDuration, easing }))
-         textProgress.value = withDelay(delay + bandTextDelay, withTiming(1, { duration: bandTextDuration, easing }))
+         progress.set(withDelay(delay, withTiming(1, { duration: bandDuration, easing })))
+         textProgress.set(withDelay(delay + bandTextDelay, withTiming(1, { duration: bandTextDuration, easing })))
       },
    )
 
    const bandStyle = useAnimatedStyle(() => ({
-      opacity: progress.value,
-      transform: [{ translateX: (1 - progress.value) * bandOffset }],
+      opacity: progress.get(),
+      transform: [{ translateX: (1 - progress.get()) * bandOffset }],
    }))
-   const textStyle = useAnimatedStyle(() => ({ opacity: textProgress.value }))
+   const textStyle = useAnimatedStyle(() => ({ opacity: textProgress.get() }))
    const popStyle = useAnimatedStyle(() => ({
-      opacity: interpolate(progress.value, [0, 0.6], [0, 1], Extrapolation.CLAMP),
-      transform: [{ scale: interpolate(progress.value, [0, 0.6, 1], [0.5, 1.1, 1]) }],
+      opacity: interpolate(progress.get(), [0, 0.6], [0, 1], Extrapolation.CLAMP),
+      transform: [{ scale: interpolate(progress.get(), [0, 0.6, 1], [0.5, 1.1, 1]) }],
    }))
 
    if (variant === "pop") {

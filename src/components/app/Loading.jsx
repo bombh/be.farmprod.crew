@@ -29,14 +29,16 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
    const progress = useSharedValue(0)
 
    useEffect(() => {
-      progress.value = withTiming(isLeaving ? 2 : 1, { duration: SLIDE_MS }, (finished) => {
-         if (finished && isLeaving && onLeft) scheduleOnRN(onLeft)
-      })
+      progress.set(
+         withTiming(isLeaving ? 2 : 1, { duration: SLIDE_MS }, (finished) => {
+            if (finished && isLeaving && onLeft) scheduleOnRN(onLeft)
+         }),
+      )
    }, [isLeaving, onLeft, progress])
 
    const style = useAnimatedStyle(() => ({
-      opacity: interpolate(progress.value, [0, 1, 2], [0, 1, 0]),
-      transform: [{ translateX: interpolate(progress.value, [0, 1, 2], [-SLIDE, 0, SLIDE]) }],
+      opacity: interpolate(progress.get(), [0, 1, 2], [0, 1, 0]),
+      transform: [{ translateX: interpolate(progress.get(), [0, 1, 2], [-SLIDE, 0, SLIDE]) }],
    }))
 
    return (

@@ -63,9 +63,11 @@ const useTourIntro = (data, mapRef, isMapShown) => {
    const hideOverlay = useCallback(() => setIsOverlayVisible(false), [])
 
    const fadeOverlay = useCallback(() => {
-      overlay.value = withTiming(0, { duration: reduceMotion ? 0 : OVERLAY_FADE_MS, easing: EASING }, (finished) => {
-         if (finished) scheduleOnRN(hideOverlay)
-      })
+      overlay.set(
+         withTiming(0, { duration: reduceMotion ? 0 : OVERLAY_FADE_MS, easing: EASING }, (finished) => {
+            if (finished) scheduleOnRN(hideOverlay)
+         }),
+      )
    }, [overlay, reduceMotion, hideOverlay])
 
    const onMapReady = useCallback(() => setIsMapReady(true), [])
@@ -100,7 +102,7 @@ const useTourIntro = (data, mapRef, isMapShown) => {
       return () => clearTimeout(timeout)
    }, [phase, fadeOverlay, mapRef, target])
 
-   const overlayStyle = useAnimatedStyle(() => ({ opacity: overlay.value }))
+   const overlayStyle = useAnimatedStyle(() => ({ opacity: overlay.get() }))
 
    return {
       initialRegion: target,

@@ -10,7 +10,7 @@ import LoadingGate from "@/src/components/app/LoadingGate"
 import MotionView from "@/src/components/app/MotionView"
 import { filterWorks } from "@/src/utils/works"
 import { useFocusEffect } from "expo-router"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import useThemeColors from "@/src/hooks/useThemeColors"
 import Chip from "@/src/components/app/Chip"
 import useMenuReset from "@/src/hooks/useMenuReset"
@@ -80,7 +80,9 @@ export default function Screen() {
    const subtitleHeight = useSharedValue(0)
    // Latest filter, read by onTagPress without making it (and so every memoized card) change with the filter
    const filterRef = useRef(null)
-   filterRef.current = filter
+   useLayoutEffect(() => {
+      filterRef.current = filter
+   }, [filter])
 
    useEffect(() => {
       if (isLoading || !entry) return
@@ -93,7 +95,7 @@ export default function Screen() {
    useEffect(
       () =>
          onWorksFilterRequest((chip) => {
-            subtitleOpacity.value = 0
+            subtitleOpacity.set(0)
             isSubtitleAwaited.current = true
             setAnimateHeader(false)
             setFilter(chip)
@@ -105,17 +107,17 @@ export default function Screen() {
 
    // Subtitle: hidden during a chip flight, shrinks and collapses its height on the "All" reverse cascade
    const subtitleStyle = useAnimatedStyle(() => {
-      const exit = headerExit.value
+      const exit = headerExit.get()
       return {
-         opacity: subtitleOpacity.value * (1 - exit),
+         opacity: subtitleOpacity.get() * (1 - exit),
          transform: [{ scale: 1 - exit * 0.08 }],
-         ...(exit > 0 && { height: subtitleHeight.value * (1 - exit), overflow: "hidden" }),
+         ...(exit > 0 && { height: subtitleHeight.get() * (1 - exit), overflow: "hidden" }),
       }
    })
 
    const allStyle = useAnimatedStyle(() => ({
-      opacity: 1 - headerExit.value,
-      transform: [{ translateX: -headerExit.value * ALL_EXIT_OFFSET }],
+      opacity: 1 - headerExit.get(),
+      transform: [{ translateX: -headerExit.get() * ALL_EXIT_OFFSET }],
    }))
 
    // Cascade, step 2 (cards faded out): apply the filter, the list is shown from the top (effect below)
@@ -134,9 +136,11 @@ export default function Screen() {
          if (isCascading.current || chip.slug === filterRef.current?.slug) return
          isCascading.current = true
          listRef.current?.scrollToOffset({ offset: 0, animated: true })
-         cardsExit.value = withTiming(1, { duration: CASCADE_EXIT_MS, easing: CASCADE_EASING }, (finished) => {
-            if (finished) scheduleOnRN(applyCascadeFilter, chip)
-         })
+         cardsExit.set(
+            withTiming(1, { duration: CASCADE_EXIT_MS, easing: CASCADE_EASING }, (finished) => {
+               if (finished) scheduleOnRN(applyCascadeFilter, chip)
+            }),
+         )
       },
       [cardsExit, applyCascadeFilter],
    )
@@ -145,8 +149,8 @@ export default function Screen() {
    useEffect(() => {
       if (!isCascading.current) return
       isCascading.current = false
-      cardsExit.value = 0
-      headerExit.value = 0
+      cardsExit.set(0)
+      headerExit.set(0)
    }, [entryRun, cardsExit, headerExit])
 
    // Reverse cascade, step 2 (cards and header faded out): full list, its first cards rising in
@@ -163,10 +167,12 @@ export default function Screen() {
       if (isCascading.current || !filterRef.current) return
       isCascading.current = true
       listRef.current?.scrollToOffset({ offset: 0, animated: true })
-      cardsExit.value = withTiming(1, { duration: CASCADE_EXIT_MS, easing: CASCADE_EASING })
-      headerExit.value = withTiming(1, { duration: HEADER_EXIT_MS, easing: CASCADE_EASING }, (finished) => {
-         if (finished) scheduleOnRN(applyAllFilter)
-      })
+      cardsExit.set(withTiming(1, { duration: CASCADE_EXIT_MS, easing: CASCADE_EASING }))
+      headerExit.set(
+         withTiming(1, { duration: HEADER_EXIT_MS, easing: CASCADE_EASING }, (finished) => {
+            if (finished) scheduleOnRN(applyAllFilter)
+         }),
+      )
    }
 
    // Menu: no animation (the screen is shown from the top, see useMenuReset)
@@ -300,7 +306,7 @@ export default function Screen() {
                className="-mt-3"
                style={subtitleStyle}
                onLayout={(event) => {
-                  if (headerExit.value === 0) subtitleHeight.value = event.nativeEvent.layout.height
+                  if (headerExit.get() === 0) subtitleHeight.set(event.nativeEvent.layout.height)
                }}
             >
                <MotionView

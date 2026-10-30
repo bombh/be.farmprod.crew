@@ -7,7 +7,7 @@
  * scrollRef: ref of the screen's ScrollView or FlashList
  * onReset: optional, resets the screen state (e.g. the Works filter)
  */
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { useNavigation } from "expo-router"
 
 const scrollToTop = (scrollable) => {
@@ -18,7 +18,9 @@ const scrollToTop = (scrollable) => {
 const useMenuReset = (scrollRef, onReset) => {
    const navigation = useNavigation()
    const onResetRef = useRef(onReset)
-   onResetRef.current = onReset
+   useLayoutEffect(() => {
+      onResetRef.current = onReset
+   }, [onReset])
 
    useEffect(() => {
       // The screen is in a stack nested in the drawer: the drawer item press targets the parent route

@@ -29,17 +29,17 @@ const MotionView = ({ from, animate, transition, style, ...props }) => {
    useEffect(() => {
       if (!from) {
          cancelAnimation(progress)
-         progress.value = 1
+         progress.set(1)
          return
       }
-      progress.value = withDelay(delay, withTiming(1, easing ? { duration, easing } : { duration }))
+      progress.set(withDelay(delay, withTiming(1, easing ? { duration, easing } : { duration })))
       // Played once per mount (or when "from" is removed): the configs are recreated on each render
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [!from])
 
    // Always sets all the values (final ones without config): a recycled view never keeps a stale state
    const animatedStyle = useAnimatedStyle(() => {
-      const p = from ? progress.value : 1
+      const p = from ? progress.get() : 1
       const start = from ?? {}
       const end = animate ?? {}
       const value = (key, rest) => mix(p, start[key] ?? end[key] ?? rest, end[key] ?? rest)

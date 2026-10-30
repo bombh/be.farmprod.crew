@@ -55,14 +55,14 @@ const WorkCard = ({
 
    // Zoom transition: hide the image and the chips while the zoom overlay covers them (seamless handoff)
    const zoomHiddenStyle = useAnimatedStyle(() => ({
-      opacity: zoomSourceKey.value === String(id) ? 0 : 1,
+      opacity: zoomSourceKey.get() === String(id) ? 0 : 1,
    }))
    const zoomHiddenChipsStyle = useAnimatedStyle(() => ({
-      opacity: zoomSourceKey.value === String(id) ? 0 : 1,
+      opacity: zoomSourceKey.get() === String(id) ? 0 : 1,
    }))
    const exitStyle = useAnimatedStyle(() =>
       exitProgress
-         ? { opacity: 1 - exitProgress.value, transform: [{ translateY: exitProgress.value * EXIT_OFFSET }] }
+         ? { opacity: 1 - exitProgress.get(), transform: [{ translateY: exitProgress.get() * EXIT_OFFSET }] }
          : {},
    )
 

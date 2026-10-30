@@ -86,6 +86,42 @@ const isOnScreen = (rect) => {
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
+// iOS edge swipe-back gesture (a hook: it only receives markClosing, which writes a ref, so it is not read during render)
+const useSwipeGesture = (active, swipeX, markClosing, leave) =>
+   useMemo(() => {
+      const screenWidth = Dimensions.get("window").width
+      return Gesture.Pan()
+         .enabled(active && SWIPE_ENABLED)
+         .hitSlop({ left: 0, width: SWIPE_EDGE })
+         .activeOffsetX(10)
+         .failOffsetY([-20, 20])
+         .onUpdate((e) => {
+            swipeX.set(Math.max(0, e.translationX))
+         })
+         .onEnd((e) => {
+            const shouldClose = e.translationX > screenWidth * SWIPE_DISTANCE || e.velocityX > SWIPE_VELOCITY
+            if (shouldClose) {
+               scheduleOnRN(markClosing)
+               swipeX.set(
+                  withTiming(
+                     screenWidth,
+                     { duration: SWIPE_DURATION, easing: Easing.out(Easing.cubic) },
+                     (finished) => {
+                        if (finished) scheduleOnRN(leave)
+                     },
+                  ),
+               )
+            } else {
+               swipeX.set(
+                  withTiming(0, {
+                     duration: SWIPE_DURATION,
+                     easing: Easing.out(Easing.cubic),
+                  }),
+               )
+            }
+         })
+   }, [active, swipeX, markClosing, leave])
+
 // chipsTop: top of the detail chips row (the chips overlay goes from the card chips to there)
 const useZoomTransition = (params, headerHeight, chipsTop) => {
    const navigation = useNavigation()
@@ -132,11 +168,11 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
    const chipsWidth = useSharedValue(chipsSource?.width ?? 0)
 
    const hideSource = useCallback(() => {
-      if (sourceKey) zoomSourceKey.value = sourceKey
+      if (sourceKey) zoomSourceKey.set(sourceKey)
    }, [sourceKey])
 
    const showSource = useCallback(() => {
-      if (sourceKey && zoomSourceKey.value === sourceKey) zoomSourceKey.value = null
+      if (sourceKey && zoomSourceKey.get() === sourceKey) zoomSourceKey.set(null)
    }, [sourceKey])
 
    // Never leave a card hidden behind
@@ -178,12 +214,14 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
       isStarted.current = true
 
       if (!enabled) {
-         background.value = withTiming(1, { duration: FADE_DURATION })
-         content.value = withTiming(1, { duration: FADE_DURATION }, (finished) => {
-            if (!finished) return
-            scheduleOnRN(markContentReady)
-            scheduleOnRN(markOpened)
-         })
+         background.set(withTiming(1, { duration: FADE_DURATION }))
+         content.set(
+            withTiming(1, { duration: FADE_DURATION }, (finished) => {
+               if (!finished) return
+               scheduleOnRN(markContentReady)
+               scheduleOnRN(markOpened)
+            }),
+         )
          return
       }
 
@@ -191,48 +229,54 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
       const root = await measureRoot()
       const targetWidth = root.width || Dimensions.get("window").width
 
-      x.value = source.x - root.x
-      y.value = source.y - root.y
+      x.set(source.x - root.x)
+      y.set(source.y - root.y)
       if (chipsEnabled) {
-         chipsOffsetX.value = chipsSource.x - root.x
-         chipsOffsetY.value = chipsSource.y - root.y
-         chipsWidth.value = chipsSource.width
-         chipsOffsetX.value = withTiming(0, { duration: DURATION, easing: EASING })
-         chipsOffsetY.value = withTiming(chipsTop, { duration: DURATION, easing: EASING })
-         chipsWidth.value = withTiming(targetWidth, { duration: DURATION, easing: EASING })
+         chipsOffsetX.set(chipsSource.x - root.x)
+         chipsOffsetY.set(chipsSource.y - root.y)
+         chipsWidth.set(chipsSource.width)
+         chipsOffsetX.set(withTiming(0, { duration: DURATION, easing: EASING }))
+         chipsOffsetY.set(withTiming(chipsTop, { duration: DURATION, easing: EASING }))
+         chipsWidth.set(withTiming(targetWidth, { duration: DURATION, easing: EASING }))
       }
       // Once the image and the title are both in place: reveal the real header,
       // then remove the overlay once the header is painted
       const onOpenPartDone = (finished) => {
          "worklet"
          if (!finished) return
-         finishedParts.value += 1
-         if (finishedParts.value < 2) return
-         headerOpacity.value = 1
-         overlayOpacity.value = withDelay(80, withTiming(0, { duration: 0 }))
+         finishedParts.set(finishedParts.get() + 1)
+         if (finishedParts.get() < 2) return
+         headerOpacity.set(1)
+         overlayOpacity.set(withDelay(80, withTiming(0, { duration: 0 })))
          scheduleOnRN(markOpened)
       }
 
-      finishedParts.value = 0
-      x.value = withTiming(0, { duration: DURATION, easing: EASING })
-      y.value = withTiming(0, { duration: DURATION, easing: EASING })
-      progress.value = withSpring(1, TITLE_SPRING, onOpenPartDone)
-      width.value = withTiming(targetWidth, {
-         duration: DURATION,
-         easing: EASING,
-      })
-      height.value = withTiming(headerHeight, { duration: DURATION, easing: EASING }, (finished) => {
-         "worklet"
-         // The image is in place: the content can be rendered (the title may still be bouncing)
-         if (finished) scheduleOnRN(markContentReady)
-         onOpenPartDone(finished)
-      })
+      finishedParts.set(0)
+      x.set(withTiming(0, { duration: DURATION, easing: EASING }))
+      y.set(withTiming(0, { duration: DURATION, easing: EASING }))
+      progress.set(withSpring(1, TITLE_SPRING, onOpenPartDone))
+      width.set(
+         withTiming(targetWidth, {
+            duration: DURATION,
+            easing: EASING,
+         }),
+      )
+      height.set(
+         withTiming(headerHeight, { duration: DURATION, easing: EASING }, (finished) => {
+            "worklet"
+            // The image is in place: the content can be rendered (the title may still be bouncing)
+            if (finished) scheduleOnRN(markContentReady)
+            onOpenPartDone(finished)
+         }),
+      )
       // The list stays visible behind the growing image, then the white background covers it
-      background.value = withTiming(1, {
-         duration: DURATION * 0.6,
-         easing: EASING,
-      })
-      content.value = withDelay(DURATION * 0.3, withTiming(1, { duration: DURATION, easing: EASING }))
+      background.set(
+         withTiming(1, {
+            duration: DURATION * 0.6,
+            easing: EASING,
+         }),
+      )
+      content.set(withDelay(DURATION * 0.3, withTiming(1, { duration: DURATION, easing: EASING })))
    }, [
       active,
       enabled,
@@ -269,11 +313,13 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
 
       // No source rect, or card not reachable anymore: simple fade out
       if (!enabled || !isOnScreen(source)) {
-         overlayOpacity.value = withTiming(0, { duration: FADE_DURATION })
-         background.value = withTiming(0, { duration: FADE_DURATION })
-         content.value = withTiming(0, { duration: FADE_DURATION }, (finished) => {
-            if (finished) scheduleOnRN(leave)
-         })
+         overlayOpacity.set(withTiming(0, { duration: FADE_DURATION }))
+         background.set(withTiming(0, { duration: FADE_DURATION }))
+         content.set(
+            withTiming(0, { duration: FADE_DURATION }, (finished) => {
+               if (finished) scheduleOnRN(leave)
+            }),
+         )
          return
       }
 
@@ -285,10 +331,10 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
          await new Promise((resolve) => {
             headerRef.current.measureInWindow((hx, hy, hw, hh) => {
                if (hw && hh) {
-                  x.value = hx - root.x
-                  y.value = hy - root.y
-                  width.value = hw
-                  height.value = hh
+                  x.set(hx - root.x)
+                  y.set(hy - root.y)
+                  width.set(hw)
+                  height.set(hh)
                }
                resolve()
             })
@@ -301,41 +347,47 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
             await new Promise((resolve) => {
                chipsRef.current.measureInWindow((cx, cy, cw, ch) => {
                   if (cw && ch) {
-                     chipsOffsetX.value = cx - root.x
-                     chipsOffsetY.value = cy - root.y
-                     chipsWidth.value = cw
+                     chipsOffsetX.set(cx - root.x)
+                     chipsOffsetY.set(cy - root.y)
+                     chipsWidth.set(cw)
                   }
                   resolve()
                })
             })
          }
-         chipsOffsetX.value = withTiming(chipsSource.x - root.x, { duration: DURATION, easing: EASING })
-         chipsOffsetY.value = withTiming(chipsSource.y - root.y, { duration: DURATION, easing: EASING })
-         chipsWidth.value = withTiming(chipsSource.width, { duration: DURATION, easing: EASING })
+         chipsOffsetX.set(withTiming(chipsSource.x - root.x, { duration: DURATION, easing: EASING }))
+         chipsOffsetY.set(withTiming(chipsSource.y - root.y, { duration: DURATION, easing: EASING }))
+         chipsWidth.set(withTiming(chipsSource.width, { duration: DURATION, easing: EASING }))
       }
 
       hideSource()
-      progress.value = 1
-      overlayOpacity.value = 1
-      headerOpacity.value = 0
-      content.value = withTiming(0, { duration: DURATION * 0.5, easing: EASING })
+      progress.set(1)
+      overlayOpacity.set(1)
+      headerOpacity.set(0)
+      content.set(withTiming(0, { duration: DURATION * 0.5, easing: EASING }))
       // Reveal the list behind the shrinking image
-      background.value = withTiming(0, {
-         duration: DURATION * 0.6,
-         easing: EASING,
-      })
+      background.set(
+         withTiming(0, {
+            duration: DURATION * 0.6,
+            easing: EASING,
+         }),
+      )
       // No title bounce on the way back: the title follows the image, and the screen is popped
       // as soon as they land (the transparent modal blocks the list touches until it is popped)
-      x.value = withTiming(target.x, { duration: DURATION, easing: EASING })
-      y.value = withTiming(target.y, { duration: DURATION, easing: EASING })
-      progress.value = withTiming(0, { duration: DURATION, easing: EASING })
-      width.value = withTiming(target.width, {
-         duration: DURATION,
-         easing: EASING,
-      })
-      height.value = withTiming(target.height, { duration: DURATION, easing: EASING }, () => {
-         scheduleOnRN(land)
-      })
+      x.set(withTiming(target.x, { duration: DURATION, easing: EASING }))
+      y.set(withTiming(target.y, { duration: DURATION, easing: EASING }))
+      progress.set(withTiming(0, { duration: DURATION, easing: EASING }))
+      width.set(
+         withTiming(target.width, {
+            duration: DURATION,
+            easing: EASING,
+         }),
+      )
+      height.set(
+         withTiming(target.height, { duration: DURATION, easing: EASING }, () => {
+            scheduleOnRN(land)
+         }),
+      )
    }, [
       active,
       enabled,
@@ -375,48 +427,20 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
    )
 
    // iOS edge swipe-back: the screen follows the finger, the list is visible behind it
-   const swipeGesture = useMemo(() => {
-      const screenWidth = Dimensions.get("window").width
-      return Gesture.Pan()
-         .enabled(active && SWIPE_ENABLED)
-         .hitSlop({ left: 0, width: SWIPE_EDGE })
-         .activeOffsetX(10)
-         .failOffsetY([-20, 20])
-         .onUpdate((e) => {
-            swipeX.value = Math.max(0, e.translationX)
-         })
-         .onEnd((e) => {
-            const shouldClose = e.translationX > screenWidth * SWIPE_DISTANCE || e.velocityX > SWIPE_VELOCITY
-            if (shouldClose) {
-               scheduleOnRN(markClosing)
-               swipeX.value = withTiming(
-                  screenWidth,
-                  { duration: SWIPE_DURATION, easing: Easing.out(Easing.cubic) },
-                  (finished) => {
-                     if (finished) scheduleOnRN(leave)
-                  },
-               )
-            } else {
-               swipeX.value = withTiming(0, {
-                  duration: SWIPE_DURATION,
-                  easing: Easing.out(Easing.cubic),
-               })
-            }
-         })
-   }, [active, swipeX, markClosing, leave])
+   const swipeGesture = useSwipeGesture(active, swipeX, markClosing, leave)
 
    const overlayStyle = useAnimatedStyle(() => ({
       position: "absolute",
       left: 0,
       top: 0,
-      width: width.value,
-      height: height.value,
-      opacity: overlayOpacity.value,
-      transform: [{ translateX: x.value }, { translateY: y.value }],
+      width: width.get(),
+      height: height.get(),
+      opacity: overlayOpacity.get(),
+      transform: [{ translateX: x.get() }, { translateY: y.get() }],
    }))
 
    const headerStyle = useAnimatedStyle(() => ({
-      opacity: headerOpacity.value,
+      opacity: headerOpacity.get(),
    }))
 
    // Chips overlay: shown and handed off together with the image overlay
@@ -424,32 +448,32 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
       position: "absolute",
       left: 0,
       top: 0,
-      width: chipsWidth.value,
-      opacity: overlayOpacity.value,
-      transform: [{ translateX: chipsOffsetX.value }, { translateY: chipsOffsetY.value }],
+      width: chipsWidth.get(),
+      opacity: overlayOpacity.get(),
+      transform: [{ translateX: chipsOffsetX.get() }, { translateY: chipsOffsetY.get() }],
    }))
 
    // Detail chips: hidden while the overlay chips move, revealed with the real header
    const chipsStyle = useAnimatedStyle(() => ({
-      opacity: headerOpacity.value,
+      opacity: headerOpacity.get(),
    }))
 
    const contentStyle = useAnimatedStyle(() => ({
-      opacity: content.value,
-      transform: [{ translateY: (1 - content.value) * CONTENT_OFFSET }],
+      opacity: content.get(),
+      transform: [{ translateY: (1 - content.get()) * CONTENT_OFFSET }],
    }))
 
    // Navigation header (back button, logo): fades with the content
    const chromeStyle = useAnimatedStyle(() => ({
-      opacity: content.value,
+      opacity: content.get(),
    }))
 
    const backgroundStyle = useAnimatedStyle(() => ({
-      opacity: background.value,
+      opacity: background.get(),
    }))
 
    const swipeStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: swipeX.value }],
+      transform: [{ translateX: swipeX.get() }],
    }))
 
    return {

@@ -46,14 +46,14 @@ export const TitleStrip = ({ title, size = "card", isHeader = false }) => (
 // (animating the Text fontSize / the strip padding aborted the app)
 export const AnimatedTitleStrip = ({ title, progress }) => {
    const backgroundStyle = useAnimatedStyle(() => ({
-      transform: [{ scaleY: interpolate(progress.value, [0, 1], [CARD_HEIGHT / HEADER_HEIGHT, 1]) }],
+      transform: [{ scaleY: interpolate(progress.get(), [0, 1], [CARD_HEIGHT / HEADER_HEIGHT, 1]) }],
    }))
 
    const textStyle = useAnimatedStyle(() => ({
       transform: [
          // Keeps the text centered in the shrinking strip, which is anchored to the bottom
-         { translateY: interpolate(progress.value, [0, 1], [(HEADER_HEIGHT - CARD_HEIGHT) / 2, 0]) },
-         { scale: interpolate(progress.value, [0, 1], [CARD_SCALE, 1]) },
+         { translateY: interpolate(progress.get(), [0, 1], [(HEADER_HEIGHT - CARD_HEIGHT) / 2, 0]) },
+         { scale: interpolate(progress.get(), [0, 1], [CARD_SCALE, 1]) },
       ],
    }))
 

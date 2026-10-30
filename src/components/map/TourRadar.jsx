@@ -25,15 +25,17 @@ const Ring = ({ index }) => {
 
    useEffect(() => {
       if (reduceMotion) return
-      pulse.value = withDelay(
-         (index * PULSE_MS) / RINGS.length,
-         withRepeat(withTiming(1, { duration: PULSE_MS, easing: Easing.out(Easing.quad) }), -1, false),
+      pulse.set(
+         withDelay(
+            (index * PULSE_MS) / RINGS.length,
+            withRepeat(withTiming(1, { duration: PULSE_MS, easing: Easing.out(Easing.quad) }), -1, false),
+         ),
       )
    }, [index, pulse, reduceMotion])
 
    const style = useAnimatedStyle(() => ({
-      opacity: 0.7 * (1 - pulse.value),
-      transform: [{ scale: 0.3 + pulse.value * 1.5 }],
+      opacity: 0.7 * (1 - pulse.get()),
+      transform: [{ scale: 0.3 + pulse.get() * 1.5 }],
    }))
 
    return (

@@ -29,25 +29,25 @@ const useParallaxScroll = () => {
    const groupIndex = useSharedValue(0)
 
    useEffect(() => {
-      shownAt.value = Date.now()
+      shownAt.set(Date.now())
    }, [shownAt])
 
    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y
+      scrollY.set(event.contentOffset.y)
    })
 
    return useMemo(() => {
       const onLayout = (event) => {
-         viewportHeight.value = event.nativeEvent.layout.height
+         viewportHeight.set(event.nativeEvent.layout.height)
       }
 
       // Blocks visible on arrival wait for the end of the header zoom, blocks entering together follow each other
       const nextRevealDelay = () => {
          "worklet"
          const now = Date.now()
-         groupIndex.value = now - groupAt.value > REVEAL_GROUP_WINDOW ? 0 : groupIndex.value + 1
-         groupAt.value = now
-         return Math.max(0, revealIntro - (now - shownAt.value)) + groupIndex.value * revealStagger
+         groupIndex.set(now - groupAt.get() > REVEAL_GROUP_WINDOW ? 0 : groupIndex.get() + 1)
+         groupAt.set(now)
+         return Math.max(0, revealIntro - (now - shownAt.get())) + groupIndex.get() * revealStagger
       }
 
       return { reduceMotion, contentRef, scrollY, viewportHeight, onScroll, onLayout, nextRevealDelay }
