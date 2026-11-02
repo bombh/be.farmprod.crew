@@ -1,6 +1,6 @@
 /**
  * ignoredWarnings.js
- * Dev only: hides two known warnings of third-party libraries, in the Metro terminal and in LogBox.
+ * Dev only: hides known warnings of third-party libraries, in the Metro terminal and in LogBox.
  * Matched on the start of their exact text, so any other warning (including future ones) still shows.
  * Loaded first by index.js, before the libraries that emit them. Remove an entry once its library is fixed.
  */
@@ -11,6 +11,8 @@ const IGNORED_WARNINGS = [
    "ImageBackground is deprecated and will be removed in a future release.",
    // react-native-drawer-layout (expo-router drawer) passes dependency arrays to Reanimated hooks
    "[Reanimated] Dependencies should only be used on the web and are always ignored on native.",
+   // expo-router's own DrawerItemList dispatches CommonActions.navigate(route) with the route's nested state
+   "A navigation action carried state without the internal __internal__routerActionState marker.",
 ]
 
 if (__DEV__) {
