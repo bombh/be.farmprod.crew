@@ -7,17 +7,25 @@
  */
 import { forwardRef, useRef } from "react"
 import { View } from "react-native"
+import type { HostInstance } from "react-native"
 import Chip from "@/src/components/app/Chip"
 
+export interface TagChipItem {
+   key: string
+   label: string
+   accessibilityLabel?: string
+   onPress?: (view: HostInstance | null) => void
+}
+
 // Chips laid out from their labels only ("City • Year" text passed to the detail page)
-export const labelsToItems = (text) =>
+export const labelsToItems = (text?: string | null): TagChipItem[] =>
    String(text ?? "")
       .split(" • ")
       .filter(Boolean)
       .map((label) => ({ key: label, label }))
 
-const TagChips = forwardRef(({ items }, ref) => {
-   const chipRefs = useRef({})
+const TagChips = forwardRef<HostInstance, { items: TagChipItem[] }>(({ items }, ref) => {
+   const chipRefs = useRef<Record<string, HostInstance | null>>({})
 
    return (
       <View
@@ -33,7 +41,7 @@ const TagChips = forwardRef(({ items }, ref) => {
                }}
                label={item.label}
                accessibilityLabel={item.accessibilityLabel}
-               onPress={item.onPress ? () => item.onPress(chipRefs.current[item.key]) : undefined}
+               onPress={item.onPress ? () => item.onPress!(chipRefs.current[item.key]) : undefined}
             />
          ))}
       </View>

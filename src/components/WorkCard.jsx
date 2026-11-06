@@ -42,7 +42,7 @@ const WorkCard = ({
    feature_image,
    tags,
    index,
-   pathname = "works/detail",
+   pathname = "/works/detail",
    onTagPress,
    entry = null,
    entryRun = 0,

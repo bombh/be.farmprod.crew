@@ -14,6 +14,7 @@ import {
 } from "@/src/utils/html"
 import { useRouter } from "expo-router"
 import { Reveal } from "@/src/components/app/Parallax"
+import type { GhostAuthor } from "@/src/types/ghost"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
@@ -21,6 +22,16 @@ const placeholder = require("@/assets/images/placeholder.png")
 const HIGH_PRIORITY_IMAGES = 2
 // Large gallery pictures preloaded when the gallery opens: the pressed one and its neighbours
 const GALLERY_PRELOAD_RANGE = 1
+
+interface RenderHtmlProps {
+   html?: string | null
+   authors?: Pick<GhostAuthor, "name">[]
+   email?: string
+   textAlign?: "center" | "justify"
+   gallery?: boolean
+   picturesPathname?: "/works/pictures" | "/20years/pictures"
+   reveal?: boolean
+}
 
 // picturesPathname: gallery route opened when an image is pressed (gallery = true)
 // reveal: bands and email button come in when they enter the viewport (inside a ParallaxScrollView, About screen)
@@ -30,9 +41,9 @@ export default function RenderHtml({
    email,
    textAlign,
    gallery,
-   picturesPathname = "works/pictures",
+   picturesPathname = "/works/pictures",
    reveal = false,
-}) {
+}: RenderHtmlProps) {
    const router = useRouter()
    const theme = useThemeColors()
    const htmlArray = useMemo(() => cleanHtml(html), [html])
@@ -44,10 +55,10 @@ export default function RenderHtml({
 
    const textClass = textAlign === "justify" ? "text-justify" : "text-center"
 
-   const handlePressImage = (tag) => {
+   const handlePressImage = (tag: string) => {
       if (!gallery) return
 
-      const imageIndex = images.indexOf(getImageURI(tag))
+      const imageIndex = images.indexOf(getImageURI(tag)!)
       if (imageIndex < 0) return
 
       images
@@ -114,7 +125,7 @@ export default function RenderHtml({
                   )
                }
                case "img": {
-                  const position = images.indexOf(getImageURI(item)) + 1
+                  const position = images.indexOf(getImageURI(item)!) + 1
                   return (
                      <View
                         className="w-full"
@@ -131,7 +142,7 @@ export default function RenderHtml({
                         >
                            <Image
                               className="w-full aspect-video mb-5"
-                              source={{ uri: getImageSrc(item) }}
+                              source={{ uri: getImageSrc(item)! }}
                               placeholder={placeholder}
                               placeholderContentFit="cover"
                               transition={500}

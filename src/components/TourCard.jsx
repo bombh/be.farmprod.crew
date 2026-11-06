@@ -13,7 +13,7 @@ export default function TourCard({ id, title, img, index }) {
       if (!id) return
 
       router.navigate({
-         pathname: `tours/detail`,
+         pathname: `/tours/detail`,
          params: {
             id,
             // Shown on the loading radar of the tour map

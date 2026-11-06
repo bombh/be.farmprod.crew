@@ -62,7 +62,7 @@ export default function Screen() {
       const imageIndex = imagesArray.indexOf(uri)
 
       router.navigate({
-         pathname: `20years/pictures`,
+         pathname: `/20years/pictures`,
          params: {
             index: imageIndex,
             images: imagesArray,

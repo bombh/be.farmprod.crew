@@ -40,7 +40,7 @@ const parseChips = (value) => {
  * Work detail screen (works/detail route).
  * picturesPathname: gallery route opened when an image is pressed (in the same stack)
  */
-const WorkDetail = ({ picturesPathname = "works/pictures" }) => {
+const WorkDetail = ({ picturesPathname = "/works/pictures" }) => {
    // Get route params
    const params = useLocalSearchParams()
    const { id, title, excerpt, imgHeader, imgThumb, tagText } = params

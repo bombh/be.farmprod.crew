@@ -1,9 +1,12 @@
 import React, { forwardRef, memo, useImperativeHandle, useRef } from "react"
 import { View, Pressable } from "react-native"
 import MapView from "react-native-maps"
+import type { Region } from "react-native-maps"
 import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import MapMarker from "./MapMarker"
 import useThemeColors from "@/src/hooks/useThemeColors"
+import type { Coordinates } from "@/src/utils/geo"
+import type { TourPlaces, TourPoint } from "@/src/types/map"
 
 // Google Maps only (Android): Apple Maps (iOS) follows the system / app appearance by itself
 const mapStyle = require("@/src/data/mapStyle.json")
@@ -12,7 +15,7 @@ const mapStyleDark = require("@/src/data/mapStyleDark.json")
 const USER_DELTA = 0.005
 
 // Markers rebuilt only when the points change, not on each map re-render
-const Markers = memo(({ points, onPress }) =>
+const Markers = memo(({ points, onPress }: { points: TourPoint[]; onPress: (point: TourPoint) => void }) =>
    points.map((point, index) => (
       <MapMarker
          key={index}
@@ -24,6 +27,21 @@ const Markers = memo(({ points, onPress }) =>
 
 Markers.displayName = "Markers"
 
+export interface MapHandle {
+   animateToRegion: (region: Region, duration?: number) => void
+}
+
+interface MapProps {
+   data: TourPlaces
+   onMarkerPress: (point: TourPoint) => void
+   hasLocationPermission?: boolean
+   userLocation?: Coordinates | null
+   initialRegion?: Region
+   region?: Region
+   onMapReady?: () => void
+   showMarkers?: boolean
+}
+
 /**
  * Tour map.
  * initialRegion: optional, defaults to the tour region (data.param)
@@ -32,7 +50,7 @@ Markers.displayName = "Markers"
  * showMarkers: false hides the markers (during the intro flight)
  * ref: exposes animateToRegion (camera flight)
  */
-const Map = forwardRef(
+const Map = forwardRef<MapHandle, MapProps>(
    (
       {
          data,
@@ -46,11 +64,11 @@ const Map = forwardRef(
       },
       ref,
    ) => {
-      const mapRef = useRef(null)
+      const mapRef = useRef<MapView>(null)
       const theme = useThemeColors()
 
       useImperativeHandle(ref, () => ({
-         animateToRegion: (region, duration) => mapRef.current?.animateToRegion(region, duration),
+         animateToRegion: (region: Region, duration?: number) => mapRef.current?.animateToRegion(region, duration),
       }))
 
       // Center the map on the user's position

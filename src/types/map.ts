@@ -19,6 +19,11 @@ export interface TourPoint {
    comment?: string
 }
 
+// Point shown in the map modal: the pressed point and the logo of its group (null without)
+export interface TourPlace extends TourPoint {
+   logo?: number | null
+}
+
 export interface TourParam {
    mapCenter: TourLatLng
    delta: number

@@ -1,14 +1,25 @@
 import { View, Text, Pressable, Platform, Linking } from "react-native"
 import React, { useCallback, useMemo } from "react"
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet"
+import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet"
 import { Image } from "expo-image"
 import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import { getDistance, formatDistance } from "@/src/utils/geo"
+import type { Coordinates } from "@/src/utils/geo"
+import type { TourPlace } from "@/src/types/map"
 import useThemeColors from "@/src/hooks/useThemeColors"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
-const MapModal = ({ place, onClose, userLocation = null }) => {
+const MapModal = ({
+   place,
+   onClose,
+   userLocation = null,
+}: {
+   place: TourPlace
+   onClose: () => void
+   userLocation?: Coordinates | null
+}) => {
    const snapPoints = useMemo(() => ["75%"], [])
    const theme = useThemeColors()
 
@@ -19,7 +30,7 @@ const MapModal = ({ place, onClose, userLocation = null }) => {
          : null
 
    // Open Maps/Plan to visit
-   const openURL = (point) => {
+   const openURL = (point: TourPlace) => {
       const scheme = Platform.select({
          ios: "maps://0,0?q=",
          android: "geo:0,0?q=",
@@ -36,7 +47,7 @@ const MapModal = ({ place, onClose, userLocation = null }) => {
 
    // Render backdrop for Bottom Sheet
    const renderBackdrop = useCallback(
-      (props) => (
+      (props: BottomSheetBackdropProps) => (
          <BottomSheetBackdrop
             appearsOnIndex={0}
             disappearsOnIndex={-1}

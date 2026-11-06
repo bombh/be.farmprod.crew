@@ -107,7 +107,7 @@ describe("RenderHtml", () => {
       await fireEvent.press(button)
 
       expect(mockNavigate).toHaveBeenCalledWith({
-         pathname: "works/pictures",
+         pathname: "/works/pictures",
          params: {
             index: 1,
             images: [`${BASE}/size/w1600/2023/05/wall.jpg`, `${BASE}/size/w1600/2023/05/detail.jpg`],

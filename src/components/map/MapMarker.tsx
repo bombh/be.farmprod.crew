@@ -1,7 +1,17 @@
 import React from "react"
 import { Marker } from "react-native-maps"
+import type { TourPoint } from "@/src/types/map"
 
-const MapMarker = ({ point, index, onPress }) => {
+// index: unused (the key is set by the parent)
+const MapMarker = ({
+   point,
+   index,
+   onPress,
+}: {
+   point: TourPoint
+   index?: number
+   onPress: (point: TourPoint) => void
+}) => {
    return (
       <Marker
          onPress={() => onPress(point)}

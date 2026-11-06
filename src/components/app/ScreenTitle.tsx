@@ -1,7 +1,7 @@
 import { View, Text } from "react-native"
 import React from "react"
 
-const ScreenTitle = ({ title }) => {
+const ScreenTitle = ({ title }: { title: string }) => {
    return (
       <View className="mt-0 mb-2">
          <Text
