@@ -16,7 +16,7 @@ const IGNORED_WARNINGS = [
 ]
 
 if (__DEV__) {
-   const isIgnored = (message) =>
+   const isIgnored = (message: unknown) =>
       typeof message === "string" && IGNORED_WARNINGS.some((text) => message.startsWith(text))
 
    const warn = console.warn

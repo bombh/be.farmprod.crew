@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react"
 import * as Location from "expo-location"
 
+import type { Coordinates } from "@/src/utils/geo"
+
 // Ask foreground permission and track the user's position while mounted
 const useUserLocation = () => {
-   const [hasPermission, setHasPermission] = useState(false)
-   const [location, setLocation] = useState(null)
+   const [hasPermission, setHasPermission] = useState<boolean>(false)
+   const [location, setLocation] = useState<Coordinates | null>(null)
 
    useEffect(() => {
       let isMounted = true
-      let subscription = null
+      let subscription: Location.LocationSubscription | null = null
 
       const start = async () => {
          try {

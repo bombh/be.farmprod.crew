@@ -13,7 +13,7 @@ import {
 const BASE = "https://www.farmprod.be/content/images"
 
 // Realistic Ghost image card
-const imageCard = (path, caption = "") =>
+const imageCard = (path: string, caption = "") =>
    `<figure class="kg-card kg-image-card${caption ? " kg-card-hascaption" : ""}">` +
    `<img src="${BASE}/${path}" class="kg-image" alt="" loading="lazy" width="2000" height="1333" ` +
    `srcset="${BASE}/size/w600/${path} 600w, ${BASE}/size/w1000/${path} 1000w, ${BASE}/size/w1600/${path} 1600w, ${BASE}/${path} 2000w" ` +

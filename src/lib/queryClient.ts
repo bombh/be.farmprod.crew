@@ -1,6 +1,10 @@
 import { AppState, Platform } from "react-native"
+import type { AppStateStatus } from "react-native"
+import type { AxiosError } from "axios"
 import { QueryClient, focusManager, onlineManager } from "@tanstack/react-query"
+import type { UseQueryResult } from "@tanstack/react-query"
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister"
+import type { PersistQueryClientOptions } from "@tanstack/react-query-persist-client"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import NetInfo from "@react-native-community/netinfo"
 
@@ -19,7 +23,7 @@ onlineManager.setEventListener((setOnline) =>
 )
 
 // Focus: refetch stale queries when the app comes back to the foreground
-const onAppStateChange = (status) => {
+const onAppStateChange = (status: AppStateStatus) => {
    if (Platform.OS !== "web") {
       focusManager.setFocused(status === "active")
    }
@@ -47,7 +51,7 @@ export const queryPersister = createAsyncStoragePersister({
    throttleTime: 1000,
 })
 
-export const persistOptions = {
+export const persistOptions: Omit<PersistQueryClientOptions, "queryClient"> = {
    persister: queryPersister,
    maxAge: CACHE_MAX_AGE,
    buster: CACHE_BUSTER,
@@ -58,6 +62,9 @@ export const persistOptions = {
 }
 
 // Error used when there is no network and nothing in cache
+export interface OfflineError {
+   isOffline: boolean
+}
 export class OfflineError extends Error {
    constructor() {
       super("No internet connection and no saved content available")
@@ -68,13 +75,28 @@ export class OfflineError extends Error {
 
 const offlineError = new OfflineError()
 
+// What toLegacyResult reads of a useQuery / useInfiniteQuery result
+type QueryLike<TData> = Readonly<Pick<UseQueryResult<TData>, "data" | "error" | "isError" | "fetchStatus" | "refetch">>
+
+// { data, isLoading, error, isError, refetch } shape of useAPI / useFetch: `data` is `emptyData` until loaded
+export interface LegacyResult<TData, TEmpty> {
+   data: TData | TEmpty
+   isLoading: boolean
+   error: AxiosError | OfflineError | null
+   isError: boolean
+   refetch: QueryLike<TData>["refetch"]
+}
+
 /**
  * Normalizes a TanStack query result to the legacy { data, isLoading, error, isError, refetch } shape.
  * - isLoading: true only while there is nothing to show (no cached data) and a fetch is in progress
  * - isError: true only when there is nothing to show (cached data wins over a failed refresh)
  * - paused (offline) with no data => isError with an OfflineError
  */
-export const toLegacyResult = (query, emptyData) => {
+export const toLegacyResult = <TData, TEmpty>(
+   query: QueryLike<TData>,
+   emptyData: TEmpty,
+): LegacyResult<TData, TEmpty> => {
    const hasData = query.data !== undefined
    const isPaused = query.fetchStatus === "paused"
    const isOfflineEmpty = !hasData && isPaused

@@ -10,15 +10,28 @@
  */
 import { makeMutable } from "react-native-reanimated"
 
+import type { WorkTagChip } from "@/src/utils/works"
+
+// Position of the subtitle (window coordinates)
+export interface SubtitleRect {
+   x: number
+   y: number
+   width: number
+   height: number
+}
+
+type FilterListener = (chip: WorkTagChip) => void
+type SubtitleWaiter = (rect: SubtitleRect | null) => void
+
 // Without an answer in time, the detail page closes without the flight
 const SUBTITLE_TIMEOUT = 500
 
-let filterListener = null
-let subtitleWaiter = null
+let filterListener: FilterListener | null = null
+let subtitleWaiter: SubtitleWaiter | null = null
 
 export const subtitleOpacity = makeMutable(1)
 
-export const onWorksFilterRequest = (listener) => {
+export const onWorksFilterRequest = (listener: FilterListener) => {
    filterListener = listener
    return () => {
       if (filterListener === listener) filterListener = null
@@ -26,8 +39,8 @@ export const onWorksFilterRequest = (listener) => {
 }
 
 // chip: { type: "year" | "city", slug, label }. Resolves with the subtitle rect in window coordinates (or null)
-export const requestWorksFilter = (chip) =>
-   new Promise((resolve) => {
+export const requestWorksFilter = (chip: WorkTagChip) =>
+   new Promise<SubtitleRect | null>((resolve) => {
       if (!filterListener) return resolve(null)
       const timeout = setTimeout(() => {
          subtitleWaiter = null
@@ -41,4 +54,4 @@ export const requestWorksFilter = (chip) =>
       filterListener(chip)
    })
 
-export const reportSubtitleRect = (rect) => subtitleWaiter?.(rect)
+export const reportSubtitleRect = (rect: SubtitleRect | null) => subtitleWaiter?.(rect)

@@ -1,9 +1,14 @@
 const EARTH_RADIUS_M = 6371000
 
-const toRad = (deg) => (deg * Math.PI) / 180
+export interface Coordinates {
+   latitude: number
+   longitude: number
+}
+
+const toRad = (deg: number) => (deg * Math.PI) / 180
 
 // Great-circle distance (haversine) in meters between two { latitude, longitude } points
-export const getDistance = (from, to) => {
+export const getDistance = (from: Coordinates, to: Coordinates) => {
    const dLat = toRad(to.latitude - from.latitude)
    const dLng = toRad(to.longitude - from.longitude)
    const a =
@@ -12,7 +17,7 @@ export const getDistance = (from, to) => {
 }
 
 // "350 m" / "1.2 km" / "12 km"
-export const formatDistance = (meters) => {
+export const formatDistance = (meters: number) => {
    if (meters < 1000) return `${Math.round(meters / 10) * 10} m`
    if (meters < 10000) return `${(meters / 1000).toFixed(1)} km`
    return `${Math.round(meters / 1000)} km`

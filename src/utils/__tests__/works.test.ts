@@ -1,7 +1,7 @@
 /* global describe, it, expect */
 import { filterWorks, getWorkTags } from "@/src/utils/works"
 
-const tag = (name, slug) => ({ name, slug })
+const tag = (name: string, slug: string) => ({ name, slug })
 const internal = [tag("#work", "hash-work"), tag("#farmprod", "hash-farmprod")]
 
 const posts = [

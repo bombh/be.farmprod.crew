@@ -1,5 +1,25 @@
 import { Dimensions } from "react-native"
 import { Easing } from "react-native-reanimated"
+import type { EasingFunction, EasingFunctionFactory } from "react-native-reanimated"
+
+// Entry animation config played by MotionView (components/app/MotionView.jsx): from -> animate, timing transition
+interface EntryValues {
+   opacity?: number
+   translateX?: number
+   translateY?: number
+   scale?: number
+}
+
+export interface EntryAnimation {
+   from?: EntryValues
+   animate?: EntryValues
+   transition?: {
+      type?: "timing"
+      duration?: number
+      delay?: number
+      easing?: EasingFunction | EasingFunctionFactory
+   }
+}
 
 // "Parallaxe" motion of the About and 20 years screens (useParallaxScroll, components/app/Parallax.jsx)
 export const parallax = {
@@ -32,7 +52,7 @@ export const parallax = {
 
 export const animations = {
    // for items in a flatlist
-   listItem: (index) => {
+   listItem: (index: number) => {
       return {
          from: {
             opacity: 0,
@@ -48,11 +68,11 @@ export const animations = {
             delay: index * 200,
             easing: Easing.elastic(1),
          },
-      }
+      } satisfies EntryAnimation
    },
 
    // for items in a flatlist, when they come from underneath another screen (chip flight to a filtered list)
-   listItemRise: (index) => {
+   listItemRise: (index: number) => {
       return {
          from: {
             opacity: 0,
@@ -68,6 +88,6 @@ export const animations = {
             delay: 220 + index * 70,
             easing: Easing.bezier(0.2, 0, 0, 1),
          },
-      }
+      } satisfies EntryAnimation
    },
 }
