@@ -12,8 +12,6 @@ const headers = {
    "Content-Type": "application/json",
 }
 
-const EMPTY_DATA: never[] = []
-
 const buildUrl = (endpoint: string, query?: string) => `${baseUrl}${endpoint}/?key=${key}${query ? `&${query}` : ""}`
 
 const request = async <T>({ method, url, signal }: { method: Method; url: string; signal: AbortSignal }) => {
@@ -26,7 +24,7 @@ export const apiQueryKey = (method: Method, endpoint: string, query?: string) =>
 
 /**
  * Ghost Content API request, cached + persisted through TanStack Query.
- * Returns { data, isLoading, error, isError, refetch } (data is [] until loaded).
+ * Returns { data, isLoading, error, isError, refetch } (data is undefined until loaded).
  * T: shape of the response (GhostPostsResponse, GhostAuthorsResponse...)
  */
 const useAPI = <T = unknown>(method: Method, endpoint: string, query?: string) => {
@@ -35,7 +33,7 @@ const useAPI = <T = unknown>(method: Method, endpoint: string, query?: string) =
       queryFn: ({ signal }) => request<T>({ method, url: buildUrl(endpoint, query), signal }),
    })
 
-   return toLegacyResult(result, EMPTY_DATA)
+   return toLegacyResult(result, undefined)
 }
 
 /**

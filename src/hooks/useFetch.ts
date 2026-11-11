@@ -10,11 +10,9 @@ const headers = {
    "Content-Type": "application/json",
 }
 
-const EMPTY_DATA = {}
-
 /**
  * Generic JSON fetch (tour map data), cached + persisted through TanStack Query.
- * Returns { data, isLoading, error, isError, refetch } (data is {} until loaded).
+ * Returns { data, isLoading, error, isError, refetch } (data is undefined until loaded).
  * T: shape of the JSON (the tour places by default)
  */
 const useFetch = <T = TourPlaces>(endpoint: string) => {
@@ -33,7 +31,7 @@ const useFetch = <T = TourPlaces>(endpoint: string) => {
       },
    })
 
-   return toLegacyResult<T, Partial<T>>(result, EMPTY_DATA)
+   return toLegacyResult(result, undefined)
 }
 
 export default useFetch

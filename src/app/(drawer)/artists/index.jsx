@@ -19,12 +19,13 @@ export default function Screen() {
 
          <View className="flex-1 px-3 bg-white dark:bg-neutral-950">
             <LoadingGate
+               data={data}
                isLoading={isLoading}
                isError={isError}
                label="Loading Artists"
                refetch={refetch}
             >
-               {() => (
+               {(data) => (
                   <View className="flex-1">
                      <FlashList
                         ref={listRef}

@@ -22,12 +22,13 @@ export default function Screen() {
 
          <View className="flex-1 bg-white dark:bg-neutral-950">
             <LoadingGate
+               data={data}
                isLoading={isLoading}
                isError={isError}
                label="Loading About"
                refetch={refetch}
             >
-               {() => (
+               {(data) => (
                   // Parallaxe: header image zoom and parallax, bands and email button coming in on scroll
                   <ParallaxScrollView ref={scrollRef}>
                      <ScreenTitle title="About" />
