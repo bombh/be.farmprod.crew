@@ -1,5 +1,5 @@
 /**
- * useThemeColors.js
+ * useThemeColors.ts
  * Palette for the places where a color must be passed as a value (icons, ActivityIndicator,
  * inline/animated styles, bottom sheet...). Everything else uses NativeWind `dark:` classes.
  * Keep in sync with the classes used in the app (light → dark):

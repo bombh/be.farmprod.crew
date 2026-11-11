@@ -93,6 +93,7 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
                accessibilityLabel="No connection. Try again"
             >
                <Text className="text-lg font-bold text-neutral-700 dark:text-neutral-300">No connection</Text>
+               <Text className="text-neutral-700 dark:text-neutral-300">You are offline</Text>
                <Text className="mt-4 text-blue-600 dark:text-blue-400">Try again</Text>
             </Pressable>
          ) : isError ? (

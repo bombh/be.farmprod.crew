@@ -1,5 +1,5 @@
 /**
- * useMenuReset.jsx
+ * useMenuReset.ts
  * Choosing a section in the drawer menu shows it from the top, even when it is already open:
  * the screen stays mounted (data and images kept), only its scroll and state are reset.
  * Going back from a detail screen ("<") keeps the scroll position: only the menu triggers the reset.

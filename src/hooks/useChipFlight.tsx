@@ -5,7 +5,7 @@
  * while the detail page fades out. The detail page is then closed.
  *
  * - start(chip, chipView): chip = { type, slug, label }, chipView = the pressed chip (measured)
- * - The filter is requested from Works (src/lib/chipFlight.js), which answers with the subtitle position.
+ * - The filter is requested from Works (src/lib/chipFlight.ts), which answers with the subtitle position.
  * - Without that position (Works not reachable in time): the detail page simply fades out.
  *
  * onLeave: closes the detail page

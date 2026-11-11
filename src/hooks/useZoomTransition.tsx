@@ -4,7 +4,7 @@
  *
  * - The source rect is measured on press (measureZoomSource) and passed as route params.
  * - The detail screen is presented as a native "transparentModal" without native animation
- *   (zoomDetailScreenOptions, used in works/_layout.jsx),
+ *   (zoomDetailScreenOptions, used in works/_layout.tsx),
  *   so the Works list stays mounted and visible underneath.
  * - The detail screen draws its own white background (backgroundStyle) and fades it in/out,
  *   so the list is visible behind the image while it grows (forward) and shrinks (reverse).
@@ -16,7 +16,7 @@
  *   (swipeGesture + swipeStyle): the screen follows the finger and the list is visible behind it.
  * - The source card hides its image (zoomSourceKey) while the overlay covers it, for a seamless handoff.
  *
- * Everything is disabled with ENABLE_ZOOM_TRANSITION = false (src/constants/features.js).
+ * Everything is disabled with ENABLE_ZOOM_TRANSITION = false (src/constants/features.ts).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { RefObject } from "react"

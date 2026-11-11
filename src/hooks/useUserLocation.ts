@@ -25,7 +25,7 @@ const useUserLocation = () => {
                },
                ({ coords }) => {
                   if (isMounted) setLocation({ latitude: coords.latitude, longitude: coords.longitude })
-               }
+               },
             )
             if (isMounted) subscription = sub
             else sub.remove()

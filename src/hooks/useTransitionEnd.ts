@@ -1,5 +1,5 @@
 /**
- * useTransitionEnd.jsx
+ * useTransitionEnd.ts
  */
 import { useEffect, useState } from "react"
 import { useNavigation } from "expo-router"

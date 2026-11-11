@@ -1,5 +1,5 @@
 /**
- * ignoredWarnings.js
+ * ignoredWarnings.ts
  * Dev only: hides known warnings of third-party libraries, in the Metro terminal and in LogBox.
  * Matched on the start of their exact text, so any other warning (including future ones) still shows.
  * Loaded first by index.js, before the libraries that emit them. Remove an entry once its library is fixed.

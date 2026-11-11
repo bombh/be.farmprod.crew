@@ -28,7 +28,7 @@ const openWebOrApp = async (webUrl: string, appUrl: string) => {
    } catch {}
 }
 
-// Theme setting: Light / Dark (persisted, see src/lib/theme.js)
+// Theme setting: Light / Dark (persisted, see src/lib/theme.ts)
 // Preselected with the OS theme until the user picks one
 const THEMES = [
    { value: "light", label: "Light", icon: "sun" },

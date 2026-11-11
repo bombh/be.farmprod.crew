@@ -2,7 +2,7 @@ import { Dimensions } from "react-native"
 import { Easing } from "react-native-reanimated"
 import type { EasingFunction, EasingFunctionFactory } from "react-native-reanimated"
 
-// Entry animation config played by MotionView (components/app/MotionView.jsx): from -> animate, timing transition
+// Entry animation config played by MotionView (components/app/MotionView.tsx): from -> animate, timing transition
 interface EntryValues {
    opacity?: number
    translateX?: number
@@ -21,7 +21,7 @@ export interface EntryAnimation {
    }
 }
 
-// "Parallaxe" motion of the About and 20 years screens (useParallaxScroll, components/app/Parallax.jsx)
+// "Parallaxe" motion of the About and 20 years screens (useParallaxScroll, components/app/Parallax.tsx)
 export const parallax = {
    easing: Easing.bezier(0.2, 0, 0, 1),
    // Header image: zooms out on arrival...

@@ -1,7 +1,7 @@
 /**
  * MotionView.tsx
  * Entry animation of a view, with Reanimated: from -> animate, on mount (change the key to replay it).
- * Same shape as the configs of constants/animations.js:
+ * Same shape as the configs of constants/animations.ts:
  * - from / animate: opacity, translateX, translateY, scale
  * - transition: { duration, delay, easing } (timing)
  * Without "from": the view is shown in its final state, and an entry animation in progress snaps to its end

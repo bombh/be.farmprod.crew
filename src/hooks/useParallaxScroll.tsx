@@ -1,7 +1,7 @@
 /**
  * useParallaxScroll.tsx
  * Scroll state of the "Parallaxe" screens (About, 20 years), given by ParallaxScrollView to ParallaxHeader and Reveal
- * (src/components/app/Parallax.jsx). A single scroll shared value, updated on the UI thread: the header parallax and
+ * (src/components/app/Parallax.tsx). A single scroll shared value, updated on the UI thread: the header parallax and
  * the "enters the viewport" checks of the Reveal blocks run in worklets, without JS work while scrolling.
  *
  * Returns { reduceMotion, contentRef, scrollY, viewportHeight, onScroll, onLayout, nextRevealDelay }

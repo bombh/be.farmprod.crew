@@ -1,5 +1,5 @@
 /**
- * theme.js
+ * theme.ts
  * Theme preference ("light" | "dark"), applied with NativeWind colorScheme.set()
  * (which also overrides the native appearance: Apple Maps, alerts, keyboards follow it)
  * and persisted with AsyncStorage.

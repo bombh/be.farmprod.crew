@@ -1,5 +1,5 @@
 /**
- * chipFlight.js
+ * chipFlight.ts
  * Link between the work detail page and the Works list for the chip flight
  * (a city / year chip pressed on the detail page flies to the subtitle of the filtered Works list).
  *

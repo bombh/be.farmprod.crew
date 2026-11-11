@@ -1,5 +1,5 @@
 /**
- * TagChips.jsx
+ * TagChips.tsx
  * Row of city / year chips of a work: Works card, work detail page and the zoom transition overlay.
  * One layout for the three, so the chips line up at both ends of the transition.
  * items: [{ key, label, accessibilityLabel?, onPress? }] (without onPress the chips are plain labels)

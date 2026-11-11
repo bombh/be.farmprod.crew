@@ -1,5 +1,5 @@
 // Ghost Content API shapes (https://ghost.org/docs/content-api/), limited to the fields the app reads.
-// List queries use `fields=` (see works/index.jsx), so most fields are optional: only those always returned are required.
+// List queries use `fields=` (see works/index.tsx), so most fields are optional: only those always returned are required.
 
 export interface GhostTag {
    id?: string

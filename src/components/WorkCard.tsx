@@ -48,7 +48,7 @@ interface WorkCardProps extends Pick<
 }
 
 // onTagPress: optional, makes the year / city chips pressable ({ type: "year" | "city", slug })
-// entry: entry animation of the first cards, "slide" (list first appears), "rise" (chip flight) or null (see works/index.jsx)
+// entry: entry animation of the first cards, "slide" (list first appears), "rise" (chip flight) or null (see works/index.tsx)
 // entryRun: changes each time an entry animation starts, so the cards are remounted to replay it
 // exitProgress: optional shared value, 0 -> 1 fades the card out downward (cascade filter of the Works list)
 // pathname: detail route, in the stack of the list so back returns to that list
