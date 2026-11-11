@@ -25,6 +25,13 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
    const isOffline = isError && (!isOnline || error?.isOffline)
    const theme = useThemeColors()
 
+   // Try again while offline: a real attempt, without waiting for NetInfo to report the connection back (it can stay
+   // "none" after a reconnection, e.g. in the iOS Simulator). Still offline: the request fails and shows the error.
+   const retryOffline = () => {
+      onlineManager.setOnline(true)
+      refetch?.()
+   }
+
    // 0 -> 1: entry, 1 -> 2: exit
    const progress = useSharedValue(0)
 
@@ -70,14 +77,11 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
          {isOffline ? (
             <Pressable
                className="items-center"
-               onPress={refetch}
+               onPress={retryOffline}
                accessibilityRole="button"
                accessibilityLabel="No connection. Try again"
             >
                <Text className="text-lg font-bold text-neutral-700 dark:text-neutral-300">No connection</Text>
-               <Text className="mt-2 text-center text-neutral-500 dark:text-neutral-400">
-                  {"You're offline — saved content will show when available."}
-               </Text>
                <Text className="mt-4 text-blue-600 dark:text-blue-400">Try again</Text>
             </Pressable>
          ) : isError ? (
