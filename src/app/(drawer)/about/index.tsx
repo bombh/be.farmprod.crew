@@ -1,6 +1,7 @@
 import { View } from "react-native"
 
 import useAPI from "@/src/hooks/useAPI"
+import type { GhostPagesResponse } from "@/src/types/ghost"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import RenderHtml from "@/src/components/app/RenderHtml"
@@ -12,7 +13,7 @@ import { ParallaxHeader, ParallaxScrollView } from "@/src/components/app/Paralla
 const placeholder = require("@/assets/images/placeholder.png")
 
 export default function Screen() {
-   const { data, isLoading, isError, refetch } = useAPI("GET", "pages/slug/about", "")
+   const { data, isLoading, isError, refetch } = useAPI<GhostPagesResponse>("GET", "pages/slug/about", "")
    const scrollRef = useRef(null)
    useMenuReset(scrollRef)
 

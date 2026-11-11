@@ -1,10 +1,11 @@
 /**
- * TourRadar.jsx
+ * TourRadar.tsx
  * Loading overlay of a tour map: the tour name in Permanent Marker over pulsing rings,
  * shown while the data and the map load (see useTourIntro). style: animated fade-out.
  */
 import { useEffect } from "react"
 import { Text, View } from "react-native"
+import type { ComponentProps } from "react"
 import Animated, {
    Easing,
    useAnimatedStyle,
@@ -19,7 +20,7 @@ const RING_SIZE = 90
 const PULSE_MS = 1400
 const RINGS = [0, 1, 2]
 
-const Ring = ({ index }) => {
+const Ring = ({ index }: { index: number }) => {
    const reduceMotion = useReducedMotion()
    const pulse = useSharedValue(reduceMotion ? 0.5 : 0)
 
@@ -46,7 +47,7 @@ const Ring = ({ index }) => {
    )
 }
 
-const TourRadar = ({ title, style }) => (
+const TourRadar = ({ title, style }: { title?: string; style?: ComponentProps<typeof Animated.View>["style"] }) => (
    <Animated.View
       pointerEvents="none"
       className="absolute inset-0 items-center justify-center bg-white dark:bg-neutral-950"

@@ -1,40 +1,50 @@
 /* global describe, it, expect, jest, beforeEach */
 // These tests use react-test-renderer with small query helpers (no @testing-library/react-native).
 import { act, create } from "react-test-renderer"
+import type { ReactTestRenderer } from "react-test-renderer"
 import { Linking } from "react-native"
 import RenderHtml from "@/src/components/app/RenderHtml"
 
-let renderer
+// The part of a test instance read here (its type is an element type, a string for host components)
+interface TestNode {
+   type: unknown
+   props: { testID?: string; accessibilityLabel?: string; onPress?: () => void; children?: unknown }
+   parent: TestNode | null
+   children: (TestNode | string)[]
+}
 
-const render = async (element) => {
+let renderer: ReactTestRenderer
+
+const render = async (element: Parameters<typeof create>[0]) => {
    await act(async () => {
       renderer = create(element)
    })
 }
 
-const textOf = (node) =>
+const textOf = (node: TestNode | string): string =>
    typeof node === "string" ? node : (node.children ?? []).map((child) => textOf(child)).join("")
 
 // Host <Text> nodes (only the outermost ones, to avoid nested duplicates)
 const getTexts = () =>
    renderer.root
-      .findAll((node) => node.type === "Text")
-      .filter((node) => node.parent?.type !== "Text")
-      .map((node) => textOf(node))
+      .findAll((node: TestNode) => node.type === "Text")
+      .filter((node: TestNode) => node.parent?.type !== "Text")
+      .map((node: TestNode) => textOf(node))
 
 const screen = {
-   getByText: (text) => {
+   getByText: (text: string) => {
       const found = getTexts().filter((value) => value === text)
       if (found.length !== 1) throw new Error(`Expected one text "${text}", found ${found.length}: ${getTexts()}`)
       return found[0]
    },
-   getAllByTestId: (testID) => renderer.root.findAll((node) => node.type === "View" && node.props.testID === testID),
-   queryByTestId: (testID) => screen.getAllByTestId(testID)[0] ?? null,
-   getAllByLabelText: (label) =>
+   getAllByTestId: (testID: string) =>
+      renderer.root.findAll((node: TestNode) => node.type === "View" && node.props.testID === testID),
+   queryByTestId: (testID: string) => screen.getAllByTestId(testID)[0] ?? null,
+   getAllByLabelText: (label: string) =>
       renderer.root.findAll(
-         (node) => node.props.accessibilityLabel === label && typeof node.props.onPress === "function",
+         (node: TestNode) => node.props.accessibilityLabel === label && typeof node.props.onPress === "function",
       ),
-   getByLabelText: (label) => {
+   getByLabelText: (label: string) => {
       const found = screen.getAllByLabelText(label)
       if (!found.length) throw new Error(`No pressable with label "${label}"`)
       return found[0]
@@ -42,7 +52,7 @@ const screen = {
 }
 
 const fireEvent = {
-   press: (node) => act(() => node.props.onPress()),
+   press: (node: TestNode) => act(() => node.props.onPress!()),
 }
 
 const mockNavigate = jest.fn()
@@ -52,8 +62,10 @@ jest.mock("expo-router", () => ({
 }))
 
 jest.mock("expo-image", () => {
+   // A jest.mock factory runs before the imports: react-native has to be required inside it
+   // eslint-disable-next-line @typescript-eslint/no-require-imports
    const { View } = require("react-native")
-   const Image = (props) => (
+   const Image = (props: Record<string, unknown>) => (
       <View
          testID="expo-image"
          {...props}
@@ -124,7 +136,7 @@ describe("RenderHtml", () => {
    })
 
    it("renders the artists and an accessible email button", async () => {
-      const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true)
+      const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined)
 
       await render(
          <RenderHtml

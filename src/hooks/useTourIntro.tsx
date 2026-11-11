@@ -1,5 +1,5 @@
 /**
- * useTourIntro.jsx
+ * useTourIntro.tsx
  * "Survol" intro of a tour map:
  * - while the data and the map load, a radar overlay covers the screen (overlayStyle)
  * - under the overlay, the map shows each zoom level of the flight in turn (tour -> overview) to load its tiles
@@ -12,8 +12,12 @@
  * Returns { initialRegion, region, onMapReady, overlayStyle, isOverlayVisible, showMarkers }
  */
 import { useCallback, useEffect, useMemo, useState } from "react"
+import type { RefObject } from "react"
 import { Easing, useReducedMotion, useSharedValue, withTiming, useAnimatedStyle } from "react-native-reanimated"
 import { scheduleOnRN } from "react-native-worklets"
+
+import type { MapHandle } from "@/src/components/map/Map"
+import type { TourPlaces } from "@/src/types/map"
 
 // Region delta x zoom, one map tile level each (x2): tour, intermediate level, overview (start of the flight)
 const PRELOAD_ZOOMS = [1, 2, 4]
@@ -25,7 +29,7 @@ const FLY_MS = 1100
 const MAP_READY_TIMEOUT = 2500
 const EASING = Easing.bezier(0.2, 0, 0, 1)
 
-const useTourIntro = (data, mapRef, isMapShown) => {
+const useTourIntro = (data: TourPlaces | null, mapRef: RefObject<MapHandle | null>, isMapShown: boolean) => {
    const reduceMotion = useReducedMotion()
    const param = data?.param
 
@@ -97,7 +101,7 @@ const useTourIntro = (data, mapRef, isMapShown) => {
    useEffect(() => {
       if (phase !== "flying") return
       fadeOverlay()
-      mapRef.current?.animateToRegion(target, FLY_MS)
+      if (target) mapRef.current?.animateToRegion(target, FLY_MS)
       const timeout = setTimeout(() => setPhase("done"), FLY_MS)
       return () => clearTimeout(timeout)
    }, [phase, fadeOverlay, mapRef, target])

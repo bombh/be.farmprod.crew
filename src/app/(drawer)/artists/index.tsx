@@ -1,6 +1,7 @@
 import { View } from "react-native"
 import { FlashList } from "@shopify/flash-list"
 import useAPI from "@/src/hooks/useAPI"
+import type { GhostAuthorsResponse } from "@/src/types/ghost"
 import ScreenTitle from "@/src/components/app/ScreenTitle"
 import ArtistCard from "@/src/components/ArtistCard"
 import HeaderDrawer from "@/src/layouts/HeaderDrawer"
@@ -9,7 +10,7 @@ import { useRef } from "react"
 import useMenuReset from "@/src/hooks/useMenuReset"
 
 export default function Screen() {
-   const { data, isLoading, isError, refetch } = useAPI("GET", "authors", "limit=15")
+   const { data, isLoading, isError, refetch } = useAPI<GhostAuthorsResponse>("GET", "authors", "limit=15")
    const listRef = useRef(null)
    useMenuReset(listRef)
 

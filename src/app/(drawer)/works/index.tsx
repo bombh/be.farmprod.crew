@@ -1,5 +1,7 @@
 import { ActivityIndicator, BackHandler, Pressable, Text, View } from "react-native"
+import type { LayoutChangeEvent } from "react-native"
 import { FlashList } from "@shopify/flash-list"
+import type { FlashListRef } from "@shopify/flash-list"
 import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 
 import { useInfiniteAPI } from "@/src/hooks/useAPI"
@@ -9,8 +11,12 @@ import HeaderDrawer from "@/src/layouts/HeaderDrawer"
 import LoadingGate from "@/src/components/app/LoadingGate"
 import MotionView from "@/src/components/app/MotionView"
 import { filterWorks } from "@/src/utils/works"
+import type { EntryAnimation } from "@/src/constants/animations"
+import type { WorkTagChip } from "@/src/utils/works"
+import type { GhostPost, GhostPostsResponse } from "@/src/types/ghost"
 import { useFocusEffect } from "expo-router"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import type { ComponentRef } from "react"
 import useThemeColors from "@/src/hooks/useThemeColors"
 import Chip from "@/src/components/app/Chip"
 import useMenuReset from "@/src/hooks/useMenuReset"
@@ -31,7 +37,7 @@ const ENTRY_ANIMATION_MS = 1400
 const CASCADE_EXIT_MS = 220
 const CASCADE_EASING = Easing.bezier(0.2, 0, 0, 1)
 // Subtitle and All button settling in after a cascade filter
-const SUBTITLE_ENTRY = {
+const SUBTITLE_ENTRY: EntryAnimation = {
    from: { opacity: 0, translateY: -10, scale: 0.92 },
    animate: { opacity: 1, translateY: 0, scale: 1 },
    transition: { type: "timing", duration: 340 },
@@ -39,7 +45,7 @@ const SUBTITLE_ENTRY = {
 // "All" button (reverse cascade): the subtitle collapses and the All button slides out while the cards fade out
 const HEADER_EXIT_MS = 260
 const ALL_EXIT_OFFSET = 8
-const ALL_ENTRY = {
+const ALL_ENTRY: EntryAnimation = {
    from: { opacity: 0, translateX: -8 },
    animate: { opacity: 1, translateX: 0 },
    transition: { type: "timing", duration: 300, delay: 60 },
@@ -56,19 +62,19 @@ export default function Screen() {
       isFetchingNextPage,
       isFetchNextPageError,
       isRefetching,
-   } = useInfiniteAPI("posts", `limit=${PAGE_SIZE}&include=tags&fields=${LIST_FIELDS}`)
+   } = useInfiniteAPI<GhostPostsResponse>("posts", `limit=${PAGE_SIZE}&include=tags&fields=${LIST_FIELDS}`)
 
    // Active filter, one at a time: { type: "year" | "city", slug, label } (the chip pressed on a card)
-   const [filter, setFilter] = useState(null)
+   const [filter, setFilter] = useState<WorkTagChip | null>(null)
    // Entry animation of the first cards: "slide" when the list first appears, "rise" after a chip flight,
    // then switched off (first scroll, filter or end of the sequence) so recycled cards never replay it
-   const [entry, setEntry] = useState("slide")
+   const [entry, setEntry] = useState<"slide" | "rise" | null>("slide")
    const stopEntryAnimation = useCallback(() => setEntry(null), [])
    // Incremented when an entry animation starts: the cards are remounted to replay it (see WorkCard)
    const [entryRun, setEntryRun] = useState(0)
    const theme = useThemeColors()
-   const listRef = useRef(null)
-   const subtitleRef = useRef(null)
+   const listRef = useRef<FlashListRef<GhostPost>>(null)
+   const subtitleRef = useRef<ComponentRef<typeof Text>>(null)
    // Set by a chip flight: the subtitle rect is reported once the filtered list is shown from the top
    const isSubtitleAwaited = useRef(false)
    // Cascade filter: cards fade-out progress (0 -> 1), header entry animation, double press guard
@@ -79,7 +85,7 @@ export default function Screen() {
    const headerExit = useSharedValue(0)
    const subtitleHeight = useSharedValue(0)
    // Latest filter, read by onTagPress without making it (and so every memoized card) change with the filter
-   const filterRef = useRef(null)
+   const filterRef = useRef<WorkTagChip | null>(null)
    useLayoutEffect(() => {
       filterRef.current = filter
    }, [filter])
@@ -122,7 +128,7 @@ export default function Screen() {
 
    // Cascade, step 2 (cards faded out): apply the filter, the list is shown from the top (effect below)
    // and the filtered cards rise in (remounted with the "rise" entry animation)
-   const applyCascadeFilter = useCallback((chip) => {
+   const applyCascadeFilter = useCallback((chip: WorkTagChip) => {
       setFilter(chip)
       setAnimateHeader(true)
       setEntry("rise")
@@ -132,7 +138,7 @@ export default function Screen() {
    // Cascade, step 1: the cards fade out downward while the list glides to the top.
    // Pressing the active filter's chip does nothing: the "All" button (or the menu) is the way back to the full list
    const onTagPress = useCallback(
-      (chip) => {
+      (chip: WorkTagChip) => {
          if (isCascading.current || chip.slug === filterRef.current?.slug) return
          isCascading.current = true
          listRef.current?.scrollToOffset({ offset: 0, animated: true })
@@ -184,7 +190,7 @@ export default function Screen() {
    // Results are shown from the top of the list (title included).
    // Scrolling once the new data is laid out: right away, a shorter list keeps the old offset
    useEffect(() => {
-      let reportFrame
+      let reportFrame: number | undefined
       const frame = requestAnimationFrame(() => {
          listRef.current?.scrollToOffset({ offset: 0, animated: false })
          if (!isSubtitleAwaited.current) return
@@ -220,7 +226,7 @@ export default function Screen() {
 
    // Stable callbacks: memoized cards only re-render when their own work changes
    const renderItem = useCallback(
-      ({ item, index }) => (
+      ({ item, index }: { item: GhostPost; index: number }) => (
          <WorkCard
             {...item}
             index={index}
@@ -305,7 +311,7 @@ export default function Screen() {
             <Animated.View
                className="-mt-3"
                style={subtitleStyle}
-               onLayout={(event) => {
+               onLayout={(event: LayoutChangeEvent) => {
                   if (headerExit.get() === 0) subtitleHeight.set(event.nativeEvent.layout.height)
                }}
             >

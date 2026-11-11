@@ -1,5 +1,6 @@
 import { Image, View } from "react-native"
 import { Stack, useNavigation } from "expo-router"
+import type { DrawerNavigationProp } from "expo-router/drawer"
 import MaterialIcons from "@react-native-vector-icons/material-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useThemeColors from "@/src/hooks/useThemeColors"
@@ -8,11 +9,13 @@ import GlassButton from "@/src/components/app/GlassButton"
 // Lets the press animation show before the drawer/back navigation covers the button
 const NAV_ACTION_DELAY = 120
 
+type ParamList = Record<string, object | undefined>
+
 const logo = require("@/assets/images/logo_128.png")
 const logoDark = require("@/assets/images/logo_drawer.png")
 
 export default function HeaderDrawer() {
-   const navigation = useNavigation()
+   const navigation = useNavigation<DrawerNavigationProp<ParamList>>()
    const insets = useSafeAreaInsets()
    const theme = useThemeColors()
 

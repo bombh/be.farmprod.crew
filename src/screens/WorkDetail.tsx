@@ -1,4 +1,5 @@
 import { ScrollView, View, Text } from "react-native"
+import type { HostInstance } from "react-native"
 import { Image } from "expo-image"
 import { useLocalSearchParams, useNavigation } from "expo-router"
 import { GestureDetector } from "react-native-gesture-handler"
@@ -17,6 +18,8 @@ import useZoomTransition from "@/src/hooks/useZoomTransition"
 import useChipFlight from "@/src/hooks/useChipFlight"
 import { shareLink } from "@/src/utils/share"
 import { workDetailRequest } from "@/src/utils/works"
+import type { WorkTagChip } from "@/src/utils/works"
+import type { GhostPostsResponse } from "@/src/types/ghost"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
@@ -26,8 +29,20 @@ const HEADER_HEIGHT = 336
 // Space between the header image and the city / year chips (also the zoom transition target of the chips)
 const CHIPS_GAP = 14
 
+// Route params set by WorkCard (strings): the card, its image / chips rects (zoom transition) and its chips (JSON)
+// id and title are always set by WorkCard, the others may be missing (no image, no chips...)
+type WorkDetailParams = {
+   id: string
+   title: string
+   excerpt?: string
+   imgHeader?: string
+   imgThumb?: string
+   tagText?: string
+   chips?: string
+}
+
 // City / year chips passed by the card (JSON): [{ type, slug, label }]
-const parseChips = (value) => {
+const parseChips = (value?: string): WorkTagChip[] => {
    try {
       const chips = JSON.parse(value ?? "[]")
       return Array.isArray(chips) ? chips : []
@@ -40,9 +55,13 @@ const parseChips = (value) => {
  * Work detail screen (works/detail route).
  * picturesPathname: gallery route opened when an image is pressed (in the same stack)
  */
-const WorkDetail = ({ picturesPathname = "/works/pictures" }) => {
+const WorkDetail = ({
+   picturesPathname = "/works/pictures",
+}: {
+   picturesPathname?: "/works/pictures" | "/20years/pictures"
+}) => {
    // Get route params
-   const params = useLocalSearchParams()
+   const params = useLocalSearchParams<WorkDetailParams>()
    const { id, title, excerpt, imgHeader, imgThumb, tagText } = params
    const navigation = useNavigation()
 
@@ -63,7 +82,7 @@ const WorkDetail = ({ picturesPathname = "/works/pictures" }) => {
                  key: chip.slug,
                  label: chip.label,
                  accessibilityLabel: `Show the works ${chip.type === "year" ? "of" : "in"} ${chip.label}`,
-                 onPress: (view) => startFlight(chip, view),
+                 onPress: (view: HostInstance | null) => startFlight(chip, view),
               }))
             : labelsToItems(tagText),
       [chipData, tagText, startFlight],
@@ -72,9 +91,9 @@ const WorkDetail = ({ picturesPathname = "/works/pictures" }) => {
    const chipLabels = useMemo(() => chips.map(({ key, label }) => ({ key, label })), [chips])
 
    // Get content
-   const { data, isLoading, isError, refetch } = useAPI(...workDetailRequest(id))
+   const { data, isLoading, isError, refetch } = useAPI<GhostPostsResponse>(...workDetailRequest(id))
    const post = data?.posts?.[0]
-   const onShare = post?.url ? () => shareLink(title, post.url, "Share this work") : undefined
+   const onShare = post?.url ? () => shareLink(title, post.url!, "Share this work") : undefined
 
    return (
       <View

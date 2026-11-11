@@ -1,4 +1,5 @@
 import { Image, View } from "react-native"
+import type { StyleProp, ViewStyle } from "react-native"
 import { useNavigation, Stack } from "expo-router"
 import colors from "tailwindcss/colors"
 import MaterialIcons from "@react-native-vector-icons/material-icons"
@@ -15,7 +16,15 @@ const logo = require("@/assets/images/logo_128.png")
 // onBack: optional custom back action (e.g. reverse zoom transition), defaults to navigation.goBack()
 // hideLogo: no badge on the right (when there is no onShare button)
 // onShare: when set, a Share button (same style as the back button) replaces the logo badge
-export function BackBar({ onBack, onShare, shareLabel = "Share", hideLogo, style }) {
+interface BackBarProps {
+   onBack?: () => void
+   onShare?: () => void
+   shareLabel?: string
+   hideLogo?: boolean
+   style?: StyleProp<ViewStyle>
+}
+
+export function BackBar({ onBack, onShare, shareLabel = "Share", hideLogo, style }: BackBarProps) {
    const navigation = useNavigation()
    const insets = useSafeAreaInsets()
    const { isDark } = useThemeColors()
@@ -73,7 +82,7 @@ export function BackBar({ onBack, onShare, shareLabel = "Share", hideLogo, style
 }
 
 // Native stack header (transparent) using BackBar
-export default function HeaderBack({ onBack, onShare, shareLabel, hideLogo }) {
+export default function HeaderBack({ onBack, onShare, shareLabel, hideLogo }: Omit<BackBarProps, "style">) {
    return (
       <Stack.Screen
          options={{

@@ -6,7 +6,18 @@ import { animations } from "@/src/constants"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
-export default function TourCard({ id, title, img, index }) {
+// id and img: missing for a tour that is not available yet ("Soon")
+export default function TourCard({
+   id,
+   title,
+   img,
+   index,
+}: {
+   id?: string
+   title: string
+   img?: string
+   index: number
+}) {
    const router = useRouter()
 
    const showDetail = () => {

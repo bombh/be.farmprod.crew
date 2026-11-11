@@ -11,19 +11,20 @@ import useTourIntro from "@/src/hooks/useTourIntro"
 import Map from "@/src/components/map/Map"
 import MapModal from "@/src/components/map/MapModal"
 import TourRadar from "@/src/components/map/TourRadar"
+import type { TourPlace, TourPoint } from "@/src/types/map"
 
 const logo_fresh = require("@/assets/images/logo_fresh.png")
 const logo_kosmo = require("@/assets/images/logo_kosmo.png")
 
 export default function Screen() {
    // States
-   const [place, setPlace] = useState({})
+   const [place, setPlace] = useState<TourPlace | null>(null)
    const [showModal, setShowModal] = useState(false)
    const { isTransitionEnd } = useTransitionEnd()
    const mapRef = useRef(null)
 
    // Hooks
-   const params = useLocalSearchParams()
+   const params = useLocalSearchParams<{ id: string; title?: string }>()
    const { id, title } = params
    const { data, isLoading, isError, refetch } = useFetch(`app/data/places.${id}.json`)
    const { hasPermission, location } = useUserLocation()
@@ -34,7 +35,7 @@ export default function Screen() {
    const intro = useTourIntro(isMapShown ? data : null, mapRef, isMapShown)
 
    // Handle map's marker press (stable: the markers are memoized)
-   const handleMarkerPress = useCallback((point) => {
+   const handleMarkerPress = useCallback((point: TourPoint) => {
       let logo = null
       switch (point.group) {
          case "fpolln":
@@ -85,7 +86,7 @@ export default function Screen() {
                </>
             )}
          </View>
-         {showModal && (
+         {showModal && place && (
             <MapModal
                place={place}
                userLocation={location}

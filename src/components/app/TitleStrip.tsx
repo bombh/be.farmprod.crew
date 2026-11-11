@@ -1,5 +1,5 @@
 /**
- * TitleStrip.jsx
+ * TitleStrip.tsx
  * Work title in Permanent Marker on a translucent black strip, laid over the bottom of an image.
  * - TitleStrip: static, "card" size (Works cards) or "header" size (work detail header)
  * - AnimatedTitleStrip: used by the zoom overlay, goes from the card size (progress 0) to the header size (progress 1)
@@ -7,6 +7,7 @@
  */
 import { StyleSheet, Text, View } from "react-native"
 import Animated, { interpolate, useAnimatedStyle } from "react-native-reanimated"
+import type { SharedValue } from "react-native-reanimated"
 
 // In px (NativeWind rem = 14): card = p-2 / text-base, header = px-4 py-3 / text-2xl
 const SIZES = {
@@ -14,7 +15,9 @@ const SIZES = {
    header: { strip: { paddingVertical: 10.5, paddingHorizontal: 14 }, text: { fontSize: 21, lineHeight: 28 } },
 }
 
-const stripHeight = (size) => SIZES[size].strip.paddingVertical * 2 + SIZES[size].text.lineHeight
+type TitleStripSize = keyof typeof SIZES
+
+const stripHeight = (size: TitleStripSize) => SIZES[size].strip.paddingVertical * 2 + SIZES[size].text.lineHeight
 const CARD_HEIGHT = stripHeight("card")
 const HEADER_HEIGHT = stripHeight("header")
 const CARD_SCALE = SIZES.card.text.fontSize / SIZES.header.text.fontSize
@@ -25,7 +28,15 @@ const styles = StyleSheet.create({
    text: { color: "#ffffff", fontFamily: "PermanentMarker-Regular", textAlign: "center" },
 })
 
-export const TitleStrip = ({ title, size = "card", isHeader = false }) => (
+export const TitleStrip = ({
+   title,
+   size = "card",
+   isHeader = false,
+}: {
+   title?: string
+   size?: TitleStripSize
+   isHeader?: boolean
+}) => (
    <View
       className={STRIP_CLASS}
       style={SIZES[size].strip}
@@ -44,7 +55,7 @@ export const TitleStrip = ({ title, size = "card", isHeader = false }) => (
 
 // Laid out at the header size, shrunk to the card size with transforms only
 // (animating the Text fontSize / the strip padding aborted the app)
-export const AnimatedTitleStrip = ({ title, progress }) => {
+export const AnimatedTitleStrip = ({ title, progress }: { title?: string; progress: SharedValue<number> }) => {
    const backgroundStyle = useAnimatedStyle(() => ({
       transform: [{ scaleY: interpolate(progress.get(), [0, 1], [CARD_HEIGHT / HEADER_HEIGHT, 1]) }],
    }))

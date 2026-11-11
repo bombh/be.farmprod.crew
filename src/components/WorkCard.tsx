@@ -3,11 +3,16 @@ import { useRouter } from "expo-router"
 import MotionView from "@/src/components/app/MotionView"
 import { memo, useRef } from "react"
 import { Pressable, Text, View } from "react-native"
+import type { HostInstance } from "react-native"
 import Animated, { useAnimatedStyle } from "react-native-reanimated"
+import type { SharedValue } from "react-native-reanimated"
 import { animations, ENABLE_ZOOM_TRANSITION } from "@/src/constants"
+import type { EntryAnimation } from "@/src/constants/animations"
 import TagChips from "@/src/components/app/TagChips"
 import { TitleStrip } from "@/src/components/app/TitleStrip"
 import { getWorkTags, workDetailRequest } from "@/src/utils/works"
+import type { WorkTagChip } from "@/src/utils/works"
+import type { GhostPost } from "@/src/types/ghost"
 import { prefetchAPI } from "@/src/hooks/useAPI"
 import { measureZoomSource, zoomSourceKey } from "@/src/hooks/useZoomTransition"
 
@@ -15,7 +20,7 @@ const placeholder = require("@/assets/images/placeholder.png")
 
 // Without entry animation: the card is shown in place. Also snaps a recycled card whose entry animation
 // was interrupted (scroll during the animation) to its final state, without remounting it
-const SETTLED = {
+const SETTLED: EntryAnimation = {
    animate: { opacity: 1, translateX: 0, translateY: 0 },
    transition: { type: "timing", duration: 0 },
 }
@@ -24,10 +29,23 @@ const SETTLED = {
 const EXIT_OFFSET = 24
 
 // Bug in expo if parentheses are used in a string
-const suppressParenthesis = (value) => String(value ?? "").replace(/[()]/g, "")
+const suppressParenthesis = (value: unknown) => String(value ?? "").replace(/[()]/g, "")
 
 // Ghost image transforms (/size/w300/) only apply to images hosted by Ghost
-const resizeImage = (uri, size) => (uri ? uri.replace("/images/", `/images/size/${size}/`) : undefined)
+const resizeImage = (uri: string | null | undefined, size: string) =>
+   uri ? uri.replace("/images/", `/images/size/${size}/`) : undefined
+
+interface WorkCardProps extends Pick<
+   GhostPost,
+   "id" | "title" | "excerpt" | "custom_excerpt" | "feature_image" | "tags"
+> {
+   index: number
+   pathname?: "/works/detail"
+   onTagPress?: (chip: WorkTagChip) => void
+   entry?: "slide" | "rise" | null
+   entryRun?: number
+   exitProgress?: SharedValue<number>
+}
 
 // onTagPress: optional, makes the year / city chips pressable ({ type: "year" | "city", slug })
 // entry: entry animation of the first cards, "slide" (list first appears), "rise" (chip flight) or null (see works/index.jsx)
@@ -47,11 +65,11 @@ const WorkCard = ({
    entry = null,
    entryRun = 0,
    exitProgress,
-}) => {
+}: WorkCardProps) => {
    const excerpt = fullExcerpt ?? custom_excerpt
    const router = useRouter()
-   const imageRef = useRef(null)
-   const chipsRef = useRef(null)
+   const imageRef = useRef<HostInstance>(null)
+   const chipsRef = useRef<HostInstance>(null)
 
    // Zoom transition: hide the image and the chips while the zoom overlay covers them (seamless handoff)
    const zoomHiddenStyle = useAnimatedStyle(() => ({

@@ -2,10 +2,15 @@ import { View, Text } from "react-native"
 import { Image } from "expo-image"
 import MotionView from "@/src/components/app/MotionView"
 import { animations } from "@/src/constants"
+import type { GhostAuthor } from "@/src/types/ghost"
 
 const placeholder = require("@/assets/images/placeholder.png")
 
-const ArtistCard = ({ name, profile_image, index }) => {
+const ArtistCard = ({
+   name,
+   profile_image,
+   index,
+}: Pick<GhostAuthor, "name" | "profile_image"> & { index: number }) => {
    const anim = index < 4 ? animations.listItem(index) : {}
 
    return (

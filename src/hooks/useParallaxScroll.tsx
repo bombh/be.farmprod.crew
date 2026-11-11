@@ -1,5 +1,5 @@
 /**
- * useParallaxScroll.jsx
+ * useParallaxScroll.tsx
  * Scroll state of the "Parallaxe" screens (About, 20 years), given by ParallaxScrollView to ParallaxHeader and Reveal
  * (src/components/app/Parallax.jsx). A single scroll shared value, updated on the UI thread: the header parallax and
  * the "enters the viewport" checks of the Reveal blocks run in worklets, without JS work while scrolling.
@@ -10,6 +10,7 @@
  * nextRevealDelay: worklet, delay of a block entering the viewport now
  */
 import { useEffect, useMemo, useRef } from "react"
+import type { HostInstance, LayoutChangeEvent } from "react-native"
 import { useAnimatedScrollHandler, useReducedMotion, useSharedValue } from "react-native-reanimated"
 
 import { parallax } from "@/src/constants/animations"
@@ -20,7 +21,7 @@ const REVEAL_GROUP_WINDOW = 20
 
 const useParallaxScroll = () => {
    const reduceMotion = useReducedMotion()
-   const contentRef = useRef(null)
+   const contentRef = useRef<HostInstance>(null)
    const scrollY = useSharedValue(0)
    const viewportHeight = useSharedValue(0)
    // When the content was shown, and the last group of blocks entering the viewport (for the stagger)
@@ -37,7 +38,7 @@ const useParallaxScroll = () => {
    })
 
    return useMemo(() => {
-      const onLayout = (event) => {
+      const onLayout = (event: LayoutChangeEvent) => {
          viewportHeight.set(event.nativeEvent.layout.height)
       }
 

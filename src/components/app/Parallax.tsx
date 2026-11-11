@@ -1,5 +1,5 @@
 /**
- * Parallax.jsx
+ * Parallax.tsx
  * "Parallaxe" motion of the About and 20 years screens:
  * - ParallaxScrollView: Animated.ScrollView sharing its scroll state (useParallaxScroll) with the blocks below
  * - ParallaxHeader: header image zooming out on arrival, then moving slower than the content while scrolling
@@ -7,8 +7,11 @@
  * With reduce motion, outside a ParallaxScrollView or with enabled = false, the blocks are rendered at rest.
  */
 import { createContext, useContext, useEffect, useRef, useState } from "react"
+import type { ComponentProps, ReactNode } from "react"
 import { View } from "react-native"
+import type { HostInstance } from "react-native"
 import { Image } from "expo-image"
+import type { ImageProps } from "expo-image"
 import Animated, {
    Extrapolation,
    interpolate,
@@ -40,10 +43,16 @@ const {
    popDuration,
 } = parallax
 
-const ParallaxContext = createContext(null)
+type ParallaxScroll = ReturnType<typeof useParallaxScroll>
+
+const ParallaxContext = createContext<ParallaxScroll | null>(null)
 
 // ref: forwarded to the ScrollView (scrollTo, e.g. useMenuReset)
-export function ParallaxScrollView({ ref, children, ...props }) {
+export function ParallaxScrollView({
+   ref,
+   children,
+   ...props
+}: Omit<ComponentProps<typeof Animated.ScrollView>, "children"> & { children?: ReactNode }) {
    const parallaxScroll = useParallaxScroll()
 
    return (
@@ -61,8 +70,9 @@ export function ParallaxScrollView({ ref, children, ...props }) {
 }
 
 // Reveal blocks measure their position in this wrapper (content coordinates)
-function ParallaxContent({ children }) {
-   const { contentRef } = useContext(ParallaxContext)
+function ParallaxContent({ children }: { children?: ReactNode }) {
+   // Only rendered by ParallaxScrollView, inside its provider
+   const { contentRef } = useContext(ParallaxContext)!
 
    return (
       <View
@@ -75,7 +85,7 @@ function ParallaxContent({ children }) {
 }
 
 // Header image (expo-image props), in an overflow-hidden frame (className: its size)
-export function ParallaxHeader({ className = "w-full h-36", ...imageProps }) {
+export function ParallaxHeader({ className = "w-full h-36", ...imageProps }: ImageProps & { className?: string }) {
    const context = useContext(ParallaxContext)
 
    if (!context || context.reduceMotion) {
@@ -96,9 +106,13 @@ export function ParallaxHeader({ className = "w-full h-36", ...imageProps }) {
    )
 }
 
-function MovingHeader({ className, context, ...imageProps }) {
+function MovingHeader({
+   className,
+   context,
+   ...imageProps
+}: ImageProps & { className?: string; context: ParallaxScroll }) {
    const { contentRef, scrollY } = context
-   const frameRef = useRef(null)
+   const frameRef = useRef<HostInstance>(null)
    const arrival = useSharedValue(0)
    // Image height added above the frame, from the frame position in the scroll content
    const [overflow, setOverflow] = useState(0)
@@ -159,7 +173,17 @@ function MovingHeader({ className, context, ...imageProps }) {
 
 // variant: "band" (slides from the left, children fade a little later) or "pop" (children scale up, e.g. a round button)
 // className: the block (the band itself, or the row holding the button)
-export function Reveal({ enabled = true, variant = "band", className, children }) {
+export function Reveal({
+   enabled = true,
+   variant = "band",
+   className,
+   children,
+}: {
+   enabled?: boolean
+   variant?: "band" | "pop"
+   className?: string
+   children?: ReactNode
+}) {
    const context = useContext(ParallaxContext)
 
    if (!enabled || !context || context.reduceMotion) {
@@ -177,9 +201,19 @@ export function Reveal({ enabled = true, variant = "band", className, children }
    )
 }
 
-function RevealOnScroll({ context, variant, className, children }) {
+function RevealOnScroll({
+   context,
+   variant,
+   className,
+   children,
+}: {
+   context: ParallaxScroll
+   variant: "band" | "pop"
+   className?: string
+   children?: ReactNode
+}) {
    const { contentRef, scrollY, viewportHeight, nextRevealDelay } = context
-   const ref = useRef(null)
+   const ref = useRef<HostInstance>(null)
    // Position in the scroll content, -1 until measured
    const top = useSharedValue(-1)
    const height = useSharedValue(0)

@@ -1,4 +1,5 @@
 import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer"
+import type { DrawerContentComponentProps } from "expo-router/drawer"
 import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
 import colors from "tailwindcss/colors"
 import { cssInterop, useColorScheme } from "nativewind"
@@ -16,7 +17,7 @@ cssInterop(FontAwesome6, {
 const logo = require("@/assets/images/logo_drawer.png")
 
 // Open web or app
-const openWebOrApp = async (webUrl, appUrl) => {
+const openWebOrApp = async (webUrl: string, appUrl: string) => {
    try {
       const supported = await Linking.canOpenURL(appUrl)
       if (supported) {
@@ -32,7 +33,7 @@ const openWebOrApp = async (webUrl, appUrl) => {
 const THEMES = [
    { value: "light", label: "Light", icon: "sun" },
    { value: "dark", label: "Dark", icon: "moon" },
-]
+] as const
 
 const ThemeSwitch = () => {
    const { colorScheme } = useColorScheme()
@@ -73,7 +74,7 @@ const ThemeSwitch = () => {
 }
 
 // Drawer content
-const AppDrawerContent = (props) => {
+const AppDrawerContent = (props: DrawerContentComponentProps) => {
    return (
       <>
          <DrawerContentScrollView {...props}>
@@ -136,7 +137,7 @@ const AppDrawerContent = (props) => {
 
 export default function AppDrawer() {
    // Drawer swipe only on list screens ("(drawer)/works"), so the iOS swipe-back works on detail screens ("(drawer)/works/detail")
-   const segments = useSegments()
+   const segments: string[] = useSegments()
    const isListScreen = segments.length <= 2
 
    return (
@@ -162,7 +163,6 @@ export default function AppDrawer() {
             drawerActiveBackgroundColor: colors.neutral[700],
             drawerInactiveTintColor: colors.neutral[400],
          }}
-         initialRouteName="works"
       >
          <Drawer.Screen
             name="works"

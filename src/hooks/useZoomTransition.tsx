@@ -1,5 +1,5 @@
 /**
- * useZoomTransition.jsx
+ * useZoomTransition.tsx
  * Zoom transition between a list thumbnail and a detail header image.
  *
  * - The source rect is measured on press (measureZoomSource) and passed as route params.
@@ -19,7 +19,10 @@
  * Everything is disabled with ENABLE_ZOOM_TRANSITION = false (src/constants/features.js).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { RefObject } from "react"
+import type { NativeStackNavigationOptions } from "expo-router"
 import { BackHandler, Dimensions, Platform } from "react-native"
+import type { HostInstance } from "react-native"
 import { useFocusEffect, useNavigation } from "expo-router"
 import { Gesture } from "react-native-gesture-handler"
 import {
@@ -31,8 +34,29 @@ import {
    withSpring,
    withTiming,
 } from "react-native-reanimated"
+import type { SharedValue } from "react-native-reanimated"
 import { scheduleOnRN } from "react-native-worklets"
 import { ENABLE_ZOOM_TRANSITION } from "@/src/constants"
+
+interface Rect {
+   x: number
+   y: number
+   width: number
+   height: number
+}
+
+// Route params read by the hook (strings): id of the card, and the measured rects of its image and chips
+interface ZoomParams {
+   id?: string
+   zoomX?: string
+   zoomY?: string
+   zoomW?: string
+   zoomH?: string
+   chipsX?: string
+   chipsY?: string
+   chipsW?: string
+   chipsH?: string
+}
 
 const DURATION = 400
 const FADE_DURATION = 250
@@ -51,15 +75,19 @@ const SWIPE_DURATION = 220
 // Stack.Screen options of a detail screen opened with the zoom transition (works/detail):
 // a transparent modal so the list stays rendered underneath, all the animations being done in JS
 export const zoomDetailScreenOptions = ENABLE_ZOOM_TRANSITION
-   ? { presentation: "transparentModal", animation: "none", contentStyle: { backgroundColor: "transparent" } }
+   ? ({
+        presentation: "transparentModal",
+        animation: "none",
+        contentStyle: { backgroundColor: "transparent" },
+     } satisfies NativeStackNavigationOptions)
    : undefined
 
 // Key of the card currently covered by the zoom overlay (read by WorkCard to hide its image)
-export const zoomSourceKey = makeMutable(null)
+export const zoomSourceKey = makeMutable<string | null>(null)
 
 // Measure a view in window coordinates and return route params (numbers): {prefix}X, {prefix}Y, {prefix}W, {prefix}H
-export const measureZoomSource = (ref, prefix = "zoom") => {
-   return new Promise((resolve) => {
+export const measureZoomSource = (ref: RefObject<HostInstance | null>, prefix = "zoom") => {
+   return new Promise<Record<string, number>>((resolve) => {
       if (!ENABLE_ZOOM_TRANSITION || !ref?.current?.measureInWindow) return resolve({})
       ref.current.measureInWindow((x, y, width, height) => {
          if (!width || !height) return resolve({})
@@ -68,18 +96,19 @@ export const measureZoomSource = (ref, prefix = "zoom") => {
    })
 }
 
-const toRect = (params, prefix = "zoom") => {
+const toRect = (params: Record<string, string | undefined> | undefined, prefix = "zoom") => {
    const rect = {
-      x: parseFloat(params?.[`${prefix}X`]),
-      y: parseFloat(params?.[`${prefix}Y`]),
-      width: parseFloat(params?.[`${prefix}W`]),
-      height: parseFloat(params?.[`${prefix}H`]),
+      // Missing params give NaN, rejected by the isFinite check below
+      x: parseFloat(params?.[`${prefix}X`] as string),
+      y: parseFloat(params?.[`${prefix}Y`] as string),
+      width: parseFloat(params?.[`${prefix}W`] as string),
+      height: parseFloat(params?.[`${prefix}H`] as string),
    }
    const isValid = Object.values(rect).every((v) => Number.isFinite(v)) && rect.width > 0 && rect.height > 0
    return isValid ? rect : null
 }
 
-const isOnScreen = (rect) => {
+const isOnScreen = (rect: Rect) => {
    const { height } = Dimensions.get("window")
    return rect.y + rect.height > 0 && rect.y < height
 }
@@ -87,7 +116,7 @@ const isOnScreen = (rect) => {
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
 // iOS edge swipe-back gesture (a hook: it only receives markClosing, which writes a ref, so it is not read during render)
-const useSwipeGesture = (active, swipeX, markClosing, leave) =>
+const useSwipeGesture = (active: boolean, swipeX: SharedValue<number>, markClosing: () => void, leave: () => void) =>
    useMemo(() => {
       const screenWidth = Dimensions.get("window").width
       return Gesture.Pan()
@@ -123,7 +152,7 @@ const useSwipeGesture = (active, swipeX, markClosing, leave) =>
    }, [active, swipeX, markClosing, leave])
 
 // chipsTop: top of the detail chips row (the chips overlay goes from the card chips to there)
-const useZoomTransition = (params, headerHeight, chipsTop) => {
+const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number, chipsTop: number) => {
    const navigation = useNavigation()
    const { id, zoomX, zoomY, zoomW, zoomH, chipsX, chipsY, chipsW, chipsH } = params ?? {}
    const source = useMemo(() => toRect({ zoomX, zoomY, zoomW, zoomH }), [zoomX, zoomY, zoomW, zoomH])
@@ -139,9 +168,9 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
    // The card chips move with the image (same duration and easing), when the card has some
    const chipsEnabled = enabled && chipsSource !== null
 
-   const rootRef = useRef(null)
-   const headerRef = useRef(null)
-   const chipsRef = useRef(null)
+   const rootRef = useRef<HostInstance>(null)
+   const headerRef = useRef<HostInstance>(null)
+   const chipsRef = useRef<HostInstance>(null)
    const isStarted = useRef(false)
    const isOpened = useRef(false)
    // The heavy detail content is rendered once the image is in place, not during the zoom animation
@@ -179,7 +208,7 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
    useEffect(() => showSource, [showSource])
 
    const measureRoot = useCallback(() => {
-      return new Promise((resolve) => {
+      return new Promise<{ x: number; y: number; width: number }>((resolve) => {
          if (!rootRef.current?.measureInWindow) return resolve({ x: 0, y: 0, width: 0 })
          rootRef.current.measureInWindow((rx, ry, rw) => resolve({ x: rx, y: ry, width: rw }))
       })
@@ -241,7 +270,7 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
       }
       // Once the image and the title are both in place: reveal the real header,
       // then remove the overlay once the header is painted
-      const onOpenPartDone = (finished) => {
+      const onOpenPartDone = (finished?: boolean) => {
          "worklet"
          if (!finished) return
          finishedParts.set(finishedParts.get() + 1)
@@ -328,8 +357,8 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
 
       // Start from the header current position (it may be scrolled)
       if (isOpened.current && headerRef.current?.measureInWindow) {
-         await new Promise((resolve) => {
-            headerRef.current.measureInWindow((hx, hy, hw, hh) => {
+         await new Promise<void>((resolve) => {
+            headerRef.current!.measureInWindow((hx, hy, hw, hh) => {
                if (hw && hh) {
                   x.set(hx - root.x)
                   y.set(hy - root.y)
@@ -344,8 +373,8 @@ const useZoomTransition = (params, headerHeight, chipsTop) => {
       // Chips: from the detail chips current position (it may be scrolled) back to the card chips
       if (chipsEnabled) {
          if (isOpened.current && chipsRef.current?.measureInWindow) {
-            await new Promise((resolve) => {
-               chipsRef.current.measureInWindow((cx, cy, cw, ch) => {
+            await new Promise<void>((resolve) => {
+               chipsRef.current!.measureInWindow((cx, cy, cw, ch) => {
                   if (cw && ch) {
                      chipsOffsetX.set(cx - root.x)
                      chipsOffsetY.set(cy - root.y)

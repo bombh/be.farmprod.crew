@@ -14,13 +14,24 @@ const SLIDE_MS = 250
 
 const useIsOnline = () =>
    useSyncExternalStore(
-      (callback) => onlineManager.subscribe(callback),
+      (callback: () => void) => onlineManager.subscribe(callback),
       () => onlineManager.isOnline(),
       () => true,
    )
 
+interface LoadingProps {
+   label?: string
+   hideLogo?: boolean
+   isError?: boolean
+   // OfflineError (queryClient.ts) has isOffline
+   error?: (Error & { isOffline?: boolean }) | null
+   refetch?: () => unknown
+   isLeaving?: boolean
+   onLeft?: () => void
+}
+
 // isLeaving: plays the exit animation, then calls onLeft (see LoadingGate)
-const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, onLeft }) => {
+const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, onLeft }: LoadingProps) => {
    const isOnline = useIsOnline()
    const isOffline = isError && (!isOnline || error?.isOffline)
    const theme = useThemeColors()

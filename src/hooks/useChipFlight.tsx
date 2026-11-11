@@ -1,5 +1,5 @@
 /**
- * useChipFlight.jsx
+ * useChipFlight.tsx
  * Chip flight: a city / year chip pressed on the work detail page flies to the subtitle of the
  * Works list (filtered on that chip, mounted underneath the detail page) and turns into the marker subtitle,
  * while the detail page fades out. The detail page is then closed.
@@ -11,9 +11,12 @@
  * onLeave: closes the detail page
  */
 import { useCallback, useRef, useState } from "react"
+import type { HostInstance } from "react-native"
 import { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated"
 import { scheduleOnRN } from "react-native-worklets"
 import { requestWorksFilter, subtitleOpacity } from "@/src/lib/chipFlight"
+import type { SubtitleRect } from "@/src/lib/chipFlight"
+import type { WorkTagChip } from "@/src/utils/works"
 
 const EASING = Easing.bezier(0.2, 0, 0, 1)
 const FLIGHT_DURATION = 520
@@ -25,16 +28,16 @@ const MORPH_DURATION = 360
 const BOX_WIDTH = 320
 const BOX_HEIGHT = 60
 
-const measure = (view) =>
-   new Promise((resolve) => {
+const measure = (view?: HostInstance | null) =>
+   new Promise<SubtitleRect | null>((resolve) => {
       if (!view?.measureInWindow) return resolve(null)
       view.measureInWindow((x, y, width, height) => resolve(width && height ? { x, y, width, height } : null))
    })
 
-const useChipFlight = (onLeave) => {
-   const rootRef = useRef(null)
+const useChipFlight = (onLeave: () => void) => {
+   const rootRef = useRef<HostInstance>(null)
    const isFlying = useRef(false)
-   const [flyingChip, setFlyingChip] = useState(null)
+   const [flyingChip, setFlyingChip] = useState<WorkTagChip | null>(null)
 
    // Flight position (center of the chip, root coordinates), page fade and chip -> text morph (0 -> 1)
    const x = useSharedValue(0)
@@ -43,7 +46,7 @@ const useChipFlight = (onLeave) => {
    const morph = useSharedValue(0)
 
    const start = useCallback(
-      async (chip, chipView) => {
+      async (chip: WorkTagChip, chipView: HostInstance | null) => {
          if (isFlying.current) return
          isFlying.current = true
 

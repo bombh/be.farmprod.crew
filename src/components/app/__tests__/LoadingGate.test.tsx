@@ -1,16 +1,24 @@
 /* global describe, it, expect, jest */
 import { act, create } from "react-test-renderer"
+import type { ReactTestRenderer } from "react-test-renderer"
 import { Text } from "react-native"
 import LoadingGate from "@/src/components/app/LoadingGate"
 
-const textsOf = (renderer) =>
-   renderer.root
-      .findAll((node) => node.type === "Text")
-      .filter((node) => node.parent?.type !== "Text")
-      .map((node) => [].concat(node.props.children).join(""))
+// The part of a test instance read here (its type is an element type, a string for host components)
+interface TestNode {
+   type: unknown
+   props: { children?: unknown }
+   parent: TestNode | null
+}
 
-const render = async (props) => {
-   let renderer
+const textsOf = (renderer: ReactTestRenderer) =>
+   renderer.root
+      .findAll((node: TestNode) => node.type === "Text")
+      .filter((node: TestNode) => node.parent?.type !== "Text")
+      .map((node: TestNode) => ([] as unknown[]).concat(node.props.children).join(""))
+
+const render = async (props: { isLoading: boolean; isError: boolean }) => {
+   let renderer!: ReactTestRenderer
    await act(async () => {
       renderer = create(
          <LoadingGate
@@ -63,7 +71,7 @@ describe("LoadingGate", () => {
 
    it("keeps Loading while the data prop is undefined, even if isLoading and isError are false", async () => {
       const children = jest.fn(() => <Text>Content</Text>)
-      let renderer
+      let renderer!: ReactTestRenderer
       await act(async () => {
          renderer = create(
             <LoadingGate
@@ -82,8 +90,8 @@ describe("LoadingGate", () => {
    })
 
    it("calls children with the data once it is there", async () => {
-      const children = jest.fn((data) => <Text>{data.title}</Text>)
-      const element = (data) => (
+      const children = jest.fn((data: { title: string }) => <Text>{data.title}</Text>)
+      const element = (data?: { title: string }) => (
          <LoadingGate
             label="Loading Works"
             isLoading={!data}
@@ -94,7 +102,7 @@ describe("LoadingGate", () => {
             {children}
          </LoadingGate>
       )
-      let renderer
+      let renderer!: ReactTestRenderer
       await act(async () => {
          renderer = create(element(undefined))
       })
@@ -112,8 +120,8 @@ describe("LoadingGate", () => {
    })
 
    it("never calls children without the data when loading comes back while the content is shown", async () => {
-      const children = jest.fn((data) => <Text>{data.title}</Text>)
-      const element = (data) => (
+      const children = jest.fn((data: { title: string }) => <Text>{data.title}</Text>)
+      const element = (data?: { title: string }) => (
          <LoadingGate
             label="Loading Works"
             isLoading={!data}
@@ -124,7 +132,7 @@ describe("LoadingGate", () => {
             {children}
          </LoadingGate>
       )
-      let renderer
+      let renderer!: ReactTestRenderer
       await act(async () => {
          renderer = create(element({ title: "Loaded" }))
       })

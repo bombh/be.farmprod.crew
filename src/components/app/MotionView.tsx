@@ -1,5 +1,5 @@
 /**
- * MotionView.jsx
+ * MotionView.tsx
  * Entry animation of a view, with Reanimated: from -> animate, on mount (change the key to replay it).
  * Same shape as the configs of constants/animations.js:
  * - from / animate: opacity, translateX, translateY, scale
@@ -8,6 +8,7 @@
  * (recycled list card whose animation was interrupted).
  */
 import { useEffect } from "react"
+import type { ComponentProps } from "react"
 import Animated, {
    cancelAnimation,
    useAnimatedStyle,
@@ -16,13 +17,21 @@ import Animated, {
    withTiming,
 } from "react-native-reanimated"
 
+import type { EntryAnimation } from "@/src/constants/animations"
+
 // Value at progress p: linear, so an overshooting easing (elastic) overshoots the value too
-const mix = (p, from, to) => {
+const mix = (p: number, from: number, to: number) => {
    "worklet"
    return from + (to - from) * p
 }
 
-const MotionView = ({ from, animate, transition, style, ...props }) => {
+const MotionView = ({
+   from,
+   animate,
+   transition,
+   style,
+   ...props
+}: EntryAnimation & ComponentProps<typeof Animated.View>) => {
    const progress = useSharedValue(from ? 0 : 1)
    const { duration = 300, delay = 0, easing } = transition ?? {}
 
@@ -42,7 +51,8 @@ const MotionView = ({ from, animate, transition, style, ...props }) => {
       const p = from ? progress.get() : 1
       const start = from ?? {}
       const end = animate ?? {}
-      const value = (key, rest) => mix(p, start[key] ?? end[key] ?? rest, end[key] ?? rest)
+      const value = (key: keyof NonNullable<EntryAnimation["from"]>, rest: number) =>
+         mix(p, start[key] ?? end[key] ?? rest, end[key] ?? rest)
       return {
          opacity: value("opacity", 1),
          transform: [

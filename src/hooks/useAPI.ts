@@ -63,6 +63,7 @@ export const useInfiniteAPI = <TPage extends { meta?: GhostMeta } = { meta?: Gho
       fetchNextPage: result.fetchNextPage,
       isFetchingNextPage: result.isFetchingNextPage,
       isFetchNextPageError: result.isFetchNextPageError,
+      isRefetching: result.isRefetching,
    }
 }
 
