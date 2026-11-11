@@ -32,7 +32,17 @@ const expoImages = [images.expo01, images.expo02, images.expo04, images.expo03]
 const imagesArray = [images.cover, ...bookPages, ...expoImages]
 
 // Full-width pressable image opening the gallery
-const GalleryImage = ({ uri, isLast, onPress, label }) => (
+const GalleryImage = ({
+   uri,
+   isLast,
+   onPress,
+   label,
+}: {
+   uri: string
+   isLast?: boolean
+   onPress: (uri: string) => void
+   label: string
+}) => (
    <View className={isLast ? "mb-0" : "mb-5"}>
       <Pressable
          className="active:opacity-70"
@@ -58,7 +68,7 @@ export default function Screen() {
    const scrollRef = useRef(null)
    useMenuReset(scrollRef)
 
-   const handlePressImage = (uri) => {
+   const handlePressImage = (uri: string) => {
       const imageIndex = imagesArray.indexOf(uri)
 
       router.navigate({
