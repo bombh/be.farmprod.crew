@@ -258,7 +258,7 @@ export default function Screen() {
             </View>
 
             <Text className="text-base text-black dark:text-white text-justify mx-5 px-5 py-2 mb-10">
-               Highlights allowed anyone to meet and get to know the artists throug the month during concerts but also
+               Highlights allowed anyone to meet and get to know the artists through the month during concerts but also
                workshops and tours, in collaboration with Fais le trottoir asbl, IceScreen collective, Maison des
                Cultures et de la Cohésion Sociale de Molenbeek, and many more.
             </Text>

@@ -23,7 +23,7 @@
  */
 
 import { View, Text, Pressable, Linking } from "react-native" // Layout, text, pressable image, mailto link
-import React, { useMemo } from "react" // Memoizes the parsed HTML and the image list (React imported for JSX)
+import { useMemo } from "react" // Memoizes the parsed HTML and the image list
 import { Image } from "expo-image" // Content images (placeholder, fade, prefetch)
 import MaterialIcons from "@react-native-vector-icons/material-icons" // Email icon of the contact button
 import useThemeColors from "@/src/hooks/useThemeColors" // Icon color

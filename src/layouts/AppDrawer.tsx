@@ -138,7 +138,6 @@ const AppDrawerContent = (props: DrawerContentComponentProps) => {
                   iconStyle="brand"
                   size={24}
                   color={colors.neutral[400]}
-                  className=""
                />
             </Pressable>
 
@@ -155,7 +154,6 @@ const AppDrawerContent = (props: DrawerContentComponentProps) => {
                   iconStyle="brand"
                   size={24}
                   color={colors.neutral[400]}
-                  className=""
                />
             </Pressable>
          </View>

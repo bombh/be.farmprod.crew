@@ -18,7 +18,7 @@
 
 // Layout; Platform.select for the maps URL scheme; Linking opens the maps app
 import { View, Text, Pressable, Platform, Linking } from "react-native"
-import React, { useCallback, useMemo } from "react" // Memoized snap points and backdrop renderer
+import { useCallback, useMemo } from "react" // Memoized snap points and backdrop renderer
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet" // Sheet and its dimmed backdrop
 import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet" // Props given to the backdrop renderer
 import { Image } from "expo-image" // Artwork image and group logo
@@ -59,15 +59,15 @@ const MapModal = ({
    // Open Maps/Plan to visit
    // Builds the platform maps URL (search query with the label at the coordinates) and opens it
    const openURL = (point: TourPlace) => {
-      const scheme = Platform.select({
-         ios: "maps://0,0?q=",
-         android: "geo:0,0?q=",
-      })
       const latLng = `${point.geo.lat},${point.geo.lng}`
       const label = encodeURIComponent(point.place)
       const url = Platform.select({
-         ios: `${scheme}${label}@${latLng}`,
-         android: `${scheme}${latLng}(${label})`,
+         // Apple Plans
+         ios: `maps://0,0?q=${label}@${latLng}`,
+         // Default maps app (Google Maps...)
+         android: `geo:0,0?q=${latLng}(${label})`,
+         // Web: Google Maps in a new tab
+         default: `https://www.google.com/maps/search/?api=1&query=${latLng}`,
       })
 
       Linking.openURL(url)

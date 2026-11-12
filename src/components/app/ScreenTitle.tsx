@@ -9,7 +9,6 @@
  */
 
 import { View, Text } from "react-native" // Container and text
-import React from "react" // Imported for JSX (the automatic JSX runtime does not require it)
 
 // title: text shown
 const ScreenTitle = ({ title }: { title: string }) => {

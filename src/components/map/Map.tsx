@@ -18,7 +18,7 @@
  */
 
 // forwardRef + useImperativeHandle: expose animateToRegion; memo: markers; ref: native map
-import React, { forwardRef, memo, useImperativeHandle, useRef } from "react"
+import { forwardRef, memo, useImperativeHandle, useRef } from "react"
 import { View, Pressable } from "react-native" // Container and locate button
 import MapView from "react-native-maps" // Native map component
 import type { Region } from "react-native-maps" // Camera region type (center + deltas)

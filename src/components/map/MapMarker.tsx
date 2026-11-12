@@ -9,28 +9,22 @@
  * view. On iOS `useLegacyPinView` uses classic pins because the default marker views hide the ones that overlap.
  */
 
-import React from "react" // Imported for JSX
 import { Marker } from "react-native-maps" // Native map marker
 import type { TourPoint } from "@/src/types/map" // The tour point displayed
 
-// index: unused (the key is set by the parent)
 // point: tour point; onPress: called with it when the pin is pressed
 const MapMarker = ({
    point,
-   index,
    onPress,
 }: {
    // Tour point (position and group)
    point: TourPoint
-   // Unused
-   index?: number
    // Called with the point on press
    onPress: (point: TourPoint) => void
 }) => {
    return (
       <Marker
          onPress={() => onPress(point)}
-         key={index}
          coordinate={{
             latitude: point.geo.lat,
             longitude: point.geo.lng,

@@ -112,7 +112,6 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
                   <Image
                      source={theme.isDark ? logoDark : logo}
                      style={{ width: 128, height: 128 }}
-                     className=""
                      accessible={false}
                   />
                </View>
@@ -121,7 +120,6 @@ const Loading = ({ label, hideLogo, isError, error, refetch, isLeaving = false, 
          )}
          {!isOffline && (
             <ActivityIndicator
-               className=""
                size="large"
                color={theme.spinner}
                accessibilityLabel={label ? label : "Loading"}
