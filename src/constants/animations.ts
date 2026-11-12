@@ -1,28 +1,59 @@
-import { Dimensions } from "react-native"
-import { Easing } from "react-native-reanimated"
-import type { EasingFunction, EasingFunctionFactory } from "react-native-reanimated"
+/**
+ * animations.ts
+ *
+ * Shared motion configuration of the app, as plain objects (no hooks, no JSX).
+ *
+ * Contains:
+ * - `EntryAnimation`: the config format played by components/app/MotionView.tsx (Reanimated): the element starts at
+ *   `from`, animates to `animate` with the timing `transition`.
+ * - `animations.listItem(index)`: slide-in from the left with an elastic easing, staggered by 200 ms per index. Used
+ *   by the list screens (works, artists, tours) for each row/card.
+ * - `animations.listItemRise(index)`: gentler fade + rise from below, staggered by 70 ms, used when the list appears
+ *   from underneath another screen (the chip flight to a filtered Works list, see lib/chipFlight.ts).
+ * - `parallax`: all numeric constants (scales, durations, delays, thresholds) of the About / 20 years parallax
+ *   screens, consumed by hooks/useParallaxScroll.tsx and components/app/Parallax.tsx.
+ *
+ * Gotcha: `listItem` reads `Dimensions.get("window").width` when called, so the start offset is one full screen width
+ * to the left on the current device size.
+ */
+
+import { Dimensions } from "react-native" // Screen width: start offset of the list item slide-in
+import { Easing } from "react-native-reanimated" // Easing curves (elastic, bezier) of the transitions
+import type { EasingFunction, EasingFunctionFactory } from "react-native-reanimated" // Types of the `easing` field
 
 // Entry animation config played by MotionView (components/app/MotionView.tsx): from -> animate, timing transition
 interface EntryValues {
+   // 0 (transparent) to 1 (opaque)
    opacity?: number
+   // Horizontal offset in px (negative = left)
    translateX?: number
+   // Vertical offset in px (positive = down)
    translateY?: number
+   // Scale factor, 1 = normal size
    scale?: number
 }
 
 export interface EntryAnimation {
+   // Values at mount, before the animation starts
    from?: EntryValues
+   // Values at the end of the animation
    animate?: EntryValues
+   // How to go from `from` to `animate`
    transition?: {
+      // Only timing (no spring) is supported by MotionView
       type?: "timing"
+      // Duration in ms
       duration?: number
+      // Wait before starting, in ms (used to stagger list items)
       delay?: number
+      // Reanimated easing function (e.g. Easing.elastic(1), Easing.bezier(...))
       easing?: EasingFunction | EasingFunctionFactory
    }
 }
 
 // "Parallaxe" motion of the About and 20 years screens (useParallaxScroll, components/app/Parallax.tsx)
 export const parallax = {
+   // Material-like "emphasized decelerate" curve shared by all the parallax animations
    easing: Easing.bezier(0.2, 0, 0, 1),
    // Header image: zooms out on arrival...
    arrivalScale: 1.25,
@@ -52,6 +83,7 @@ export const parallax = {
 
 export const animations = {
    // for items in a flatlist
+   // `index` = position of the item in the list: it sets the delay (index x 200 ms) so items arrive one after another
    listItem: (index: number) => {
       return {
          from: {
@@ -65,6 +97,7 @@ export const animations = {
          transition: {
             type: "timing",
             duration: 600,
+            // 200 ms between two items
             delay: index * 200,
             easing: Easing.elastic(1),
          },
@@ -72,6 +105,7 @@ export const animations = {
    },
 
    // for items in a flatlist, when they come from underneath another screen (chip flight to a filtered list)
+   // `index` = position in the list: 220 ms base delay (lets the incoming screen settle) + index x 70 ms
    listItemRise: (index: number) => {
       return {
          from: {

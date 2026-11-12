@@ -1,8 +1,32 @@
-import { View, Text, Pressable, Linking } from "react-native"
-import React, { useMemo } from "react"
-import { Image } from "expo-image"
-import MaterialIcons from "@react-native-vector-icons/material-icons"
-import useThemeColors from "@/src/hooks/useThemeColors"
+/**
+ * RenderHtml.tsx
+ *
+ * Renders the HTML content of a Ghost post / page as native React Native elements. Used by the Work detail screen
+ * (screens/WorkDetail.tsx), the About screen and the 20 years screen.
+ *
+ * How it works: `html` (Ghost HTML string) is cleaned by `cleanHtml` (utils/html.ts) into a flat array of simple tags
+ * (memoized on `html`), and each item is mapped to an element by its tag name:
+ * - "p"  -> centered / justified text paragraph;
+ * - "h2" -> white title on a black band (a <Reveal> from components/app/Parallax.tsx: animated on scroll when
+ *   `reveal` is true, plain View otherwise);
+ * - "h3" -> bold text header;
+ * - "li" -> text line prefixed with its number ("1.") or a bullet;
+ * - "img" -> a pressable w600 image with a placeholder (the first 2 load with normal priority, the others low). When
+ *   `gallery` is true, a press prefetches the pressed picture and its neighbours (w1600) and navigates to the pictures
+ *   route (`picturesPathname`) with `index` and `images` (all large URIs) as params: see screens/Gallery.tsx.
+ * After the content: an "Artists" band + names joined by " / " (when `authors` is given) and a round email button
+ * opening the mail app (when `email` is given).
+ * Text colors come from NativeWind `dark:` classes; the icon color from useThemeColors.
+ *
+ * Props: html, authors, email, textAlign ("center" default or "justify"), gallery, picturesPathname, reveal.
+ * Unit tested in components/app/__tests__/RenderHtml.test.tsx.
+ */
+
+import { View, Text, Pressable, Linking } from "react-native" // Layout, text, pressable image, mailto link
+import React, { useMemo } from "react" // Memoizes the parsed HTML and the image list (React imported for JSX)
+import { Image } from "expo-image" // Content images (placeholder, fade, prefetch)
+import MaterialIcons from "@react-native-vector-icons/material-icons" // Email icon of the contact button
+import useThemeColors from "@/src/hooks/useThemeColors" // Icon color
 import {
    cleanHtml,
    getImages,
@@ -12,10 +36,12 @@ import {
    getTagContent,
    getTagName,
 } from "@/src/utils/html"
+// Navigation to the pictures gallery route
 import { useRouter } from "expo-router"
-import { Reveal } from "@/src/components/app/Parallax"
-import type { GhostAuthor } from "@/src/types/ghost"
+import { Reveal } from "@/src/components/app/Parallax" // Scroll-revealed black band / email button
+import type { GhostAuthor } from "@/src/types/ghost" // Shape of the authors prop
 
+// Local image shown while a content picture loads
 const placeholder = require("@/assets/images/placeholder.png")
 
 // Pictures loaded first (the top of the content), the next ones wait with a low priority
@@ -23,18 +49,27 @@ const HIGH_PRIORITY_IMAGES = 2
 // Large gallery pictures preloaded when the gallery opens: the pressed one and its neighbours
 const GALLERY_PRELOAD_RANGE = 1
 
+// Props of the renderer
 interface RenderHtmlProps {
+   // Ghost HTML string; empty or missing renders nothing
    html?: string | null
+   // Artists of the work, shown under an "Artists" band
    authors?: Pick<GhostAuthor, "name">[]
+   // Shows a round contact button that opens a mailto link
    email?: string
+   // Alignment of paragraphs and list items (default "center")
    textAlign?: "center" | "justify"
+   // Images open the full screen gallery when pressed
    gallery?: boolean
+   // Gallery route to open (default works pictures)
    picturesPathname?: "/works/pictures" | "/20years/pictures"
+   // Animate bands and the email button when they enter the viewport
    reveal?: boolean
 }
 
 // picturesPathname: gallery route opened when an image is pressed (gallery = true)
 // reveal: bands and email button come in when they enter the viewport (inside a ParallaxScrollView, About screen)
+// See header
 export default function RenderHtml({
    html,
    authors,
@@ -44,17 +79,24 @@ export default function RenderHtml({
    picturesPathname = "/works/pictures",
    reveal = false,
 }: RenderHtmlProps) {
+   // Navigation
    const router = useRouter()
+   // Theme colors
    const theme = useThemeColors()
+   // Cleaned simple tags, recomputed only when the html changes
    const htmlArray = useMemo(() => cleanHtml(html), [html])
+   // Large (w1600) URIs of all content images, in order: the gallery content
    const images = useMemo(() => getImages(htmlArray), [htmlArray])
+   // Artist names joined by " / ", undefined without authors
    const artists = authors
       ?.map((author) => author?.name)
       .filter(Boolean)
       .join(" / ")
 
+   // Text alignment class shared by paragraphs and list items
    const textClass = textAlign === "justify" ? "text-justify" : "text-center"
 
+   // Opens the gallery at the pressed image (only when `gallery`): prefetches neighbours, navigates with the image list
    const handlePressImage = (tag: string) => {
       if (!gallery) return
 
@@ -74,6 +116,7 @@ export default function RenderHtml({
       })
    }
 
+   // Renders each cleaned tag; any other tag gives null
    return (
       <View className="px-0">
          {/* HTML tags from array  */}

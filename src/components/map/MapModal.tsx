@@ -1,35 +1,63 @@
-import { View, Text, Pressable, Platform, Linking } from "react-native"
-import React, { useCallback, useMemo } from "react"
-import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet"
-import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet"
-import { Image } from "expo-image"
-import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
-import { getDistance, formatDistance } from "@/src/utils/geo"
-import type { Coordinates } from "@/src/utils/geo"
-import type { TourPlace } from "@/src/types/map"
-import useThemeColors from "@/src/hooks/useThemeColors"
+/**
+ * MapModal.tsx
+ *
+ * Bottom sheet (@gorhom/bottom-sheet) showing the details of the tour point pressed on the map. Opened by
+ * app/(drawer)/tours/detail.tsx when a marker is pressed (it mounts the modal with the `place`), and removed from
+ * there when `onClose` is called.
+ *
+ * Content: the artwork image full size (from map.farmprod.be/.../img/art/<image>), and over its bottom a translucent
+ * black block with the group logo (when `place.logo`), the title in the marker font, the place name, the optional
+ * comment and the walking distance from the user (haversine distance from utils/geo.ts, only when the user position
+ * is known). A small indicator line at the top, and a round button at the top right that opens the system maps app
+ * (Apple Maps `maps://` on iOS, `geo:` on Android) on the place.
+ * The sheet opens at one snap point (75% of the screen), can be dragged down to close (onClose), and has a backdrop
+ * that blocks touches behind it.
+ *
+ * Props: place (TourPlace), onClose, userLocation (optional).
+ */
 
+// Layout; Platform.select for the maps URL scheme; Linking opens the maps app
+import { View, Text, Pressable, Platform, Linking } from "react-native"
+import React, { useCallback, useMemo } from "react" // Memoized snap points and backdrop renderer
+import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet" // Sheet and its dimmed backdrop
+import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet" // Props given to the backdrop renderer
+import { Image } from "expo-image" // Artwork image and group logo
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6" // Walking icons
+import { getDistance, formatDistance } from "@/src/utils/geo" // Distance between user and place, formatted
+import type { Coordinates } from "@/src/utils/geo" // User position shape
+import type { TourPlace } from "@/src/types/map" // Pressed point (+ group logo)
+import useThemeColors from "@/src/hooks/useThemeColors" // Sheet background color
+
+// Local image shown while the artwork loads
 const placeholder = require("@/assets/images/placeholder.png")
 
+// place: point to show; onClose: called when the sheet is closed; userLocation: for the distance
 const MapModal = ({
    place,
    onClose,
    userLocation = null,
 }: {
+   // Point to detail
    place: TourPlace
+   // Called when the sheet is dismissed
    onClose: () => void
+   // User position; without it the distance is not shown
    userLocation?: Coordinates | null
 }) => {
+   // Single snap point: the sheet takes 75% of the screen height
    const snapPoints = useMemo(() => ["75%"], [])
+   // Theme colors (surface)
    const theme = useThemeColors()
 
    // Distance as the crow flies from the user to the place
+   // Formatted distance ("350 m", "1.2 km") or null
    const distance =
       userLocation && place.geo
          ? formatDistance(getDistance(userLocation, { latitude: place.geo.lat, longitude: place.geo.lng }))
          : null
 
    // Open Maps/Plan to visit
+   // Builds the platform maps URL (search query with the label at the coordinates) and opens it
    const openURL = (point: TourPlace) => {
       const scheme = Platform.select({
          ios: "maps://0,0?q=",
@@ -46,6 +74,7 @@ const MapModal = ({
    }
 
    // Render backdrop for Bottom Sheet
+   // Dimmed backdrop visible from index 0, which swallows touches
    const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
          <BottomSheetBackdrop
@@ -58,6 +87,7 @@ const MapModal = ({
       [],
    )
 
+   // Sheet with dynamic sizing off and pan-down-to-close; no handle component (a custom indicator line is drawn)
    return (
       <BottomSheet
          snapPoints={snapPoints}

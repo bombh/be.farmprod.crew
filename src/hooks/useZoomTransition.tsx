@@ -1,30 +1,51 @@
 /**
  * useZoomTransition.tsx
- * Zoom transition between a list thumbnail and a detail header image.
  *
- * - The source rect is measured on press (measureZoomSource) and passed as route params.
- * - The detail screen is presented as a native "transparentModal" without native animation
- *   (zoomDetailScreenOptions, used in works/_layout.tsx),
- *   so the Works list stays mounted and visible underneath.
- * - The detail screen draws its own white background (backgroundStyle) and fades it in/out,
- *   so the list is visible behind the image while it grows (forward) and shrinks (reverse).
+ * Zoom transition between a Works list thumbnail and the Work detail header image. Everything is animated in JS with
+ * Reanimated (UI thread shared values); no native shared-element transition is involved.
+ *
+ * Used by: components/WorkCard.tsx (calls `measureZoomSource` on press, hides its image while covered, reads
+ * `zoomSourceKey`), app/(drawer)/works/_layout.tsx (`zoomDetailScreenOptions`), screens/WorkDetail.tsx (calls the
+ * hook and applies the returned styles / refs) and components/app/ZoomImage.tsx (the flying image + title strip).
+ *
+ * How it works:
+ * - The source rect is measured on press (measureZoomSource) and passed as route params (zoomX / zoomY / zoomW /
+ *   zoomH, plus chipsX... for the chips of the card). Params are strings, `toRect` parses them back.
+ * - The detail screen is presented as a native "transparentModal" without native animation (zoomDetailScreenOptions,
+ *   used in works/_layout.tsx), so the Works list stays mounted and visible underneath.
+ * - The detail screen draws its own white background (backgroundStyle) and fades it in/out, so the list is visible
+ *   behind the image while it grows (forward) and shrinks (reverse).
  * - The card chips move the same way to their place under the header (chipsOverlayStyle), and back.
- * - <ZoomImage /> is animated from the source rect to the header rect, and back,
- *   its title strip growing from the card size to the header size (progress, with a small spring bounce).
+ * - <ZoomImage /> is animated from the source rect to the header rect, and back, its title strip growing from the card
+ *   size to the header size (progress, with a small spring bounce).
+ * - Opening (onRootLayout): measure root, then animate x / y / width / height of the overlay to the header rect. When
+ *   both the image (timing) and the title (spring) have finished, the real header is shown and the overlay removed.
  * - goBack() (back button, Android hardware back) plays the reverse animation, then pops the screen.
  * - iOS: a modal has no native swipe-back, so an edge swipe is re-implemented with Gesture Handler
  *   (swipeGesture + swipeStyle): the screen follows the finger and the list is visible behind it.
  * - The source card hides its image (zoomSourceKey) while the overlay covers it, for a seamless handoff.
+ * - Without a source rect (deep link, card off screen) the screen simply fades in / out.
  *
  * Everything is disabled with ENABLE_ZOOM_TRANSITION = false (src/constants/features.ts).
+ *
+ * Hook signature: useZoomTransition(params, headerHeight, chipsTop)
+ * - params: the route params of the detail screen; headerHeight: target height of the header image;
+ *   chipsTop: top of the detail chips row (the chips overlay goes from the card chips to there)
+ * Returns the flags (active, enabled, chipsEnabled, isContentReady), refs (rootRef, headerRef, chipsRef), handlers
+ * (goBack, onRootLayout, swipeGesture), `progress` (0 card -> 1 header) and the animated styles, which are undefined
+ * when the matching part is disabled so they can be spread safely.
  */
+
+// Memoized handlers, effects, refs, content-ready state
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { RefObject } from "react"
-import type { NativeStackNavigationOptions } from "expo-router"
-import { BackHandler, Dimensions, Platform } from "react-native"
-import type { HostInstance } from "react-native"
+import type { RefObject } from "react" // Type of a view ref parameter
+import type { NativeStackNavigationOptions } from "expo-router" // Type of the detail screen options
+import { BackHandler, Dimensions, Platform } from "react-native" // Android hardware back, window size, iOS-only swipe
+import type { HostInstance } from "react-native" // Native view ref type (measureInWindow)
+// Run an effect only while the screen is focused; navigation.goBack()
 import { useFocusEffect, useNavigation } from "expo-router"
-import { Gesture } from "react-native-gesture-handler"
+import { Gesture } from "react-native-gesture-handler" // Pan gesture of the iOS edge swipe-back
+// Reanimated: easing curve, module-level shared value, animated styles, shared values, timing / spring animations
 import {
    Easing,
    makeMutable,
@@ -34,46 +55,72 @@ import {
    withSpring,
    withTiming,
 } from "react-native-reanimated"
+// Type of the swipe shared value parameter
 import type { SharedValue } from "react-native-reanimated"
-import { scheduleOnRN } from "react-native-worklets"
-import { ENABLE_ZOOM_TRANSITION } from "@/src/constants"
+import { scheduleOnRN } from "react-native-worklets" // Calls JS functions from worklets / animation callbacks
+import { ENABLE_ZOOM_TRANSITION } from "@/src/constants" // Feature flag
 
+// A measured rectangle in window coordinates
 interface Rect {
+   // Left
    x: number
+   // Top
    y: number
+   // Width
    width: number
+   // Height
    height: number
 }
 
 // Route params read by the hook (strings): id of the card, and the measured rects of its image and chips
 interface ZoomParams {
+   // Id of the work (the source card key)
    id?: string
+   // Card image rect: left
    zoomX?: string
+   // Card image rect: top
    zoomY?: string
+   // Card image rect: width
    zoomW?: string
+   // Card image rect: height
    zoomH?: string
+   // Card chips rect: left
    chipsX?: string
+   // Card chips rect: top
    chipsY?: string
+   // Card chips rect: width
    chipsW?: string
+   // Card chips rect: height
    chipsH?: string
 }
 
+// Duration of the zoom image / chips / background animations (ms)
 const DURATION = 400
+// Duration of the plain fades used when there is no source rect (ms)
 const FADE_DURATION = 250
+// Same "emphasized decelerate" curve as the other transitions
 const EASING = Easing.bezier(0.2, 0, 0, 1)
+// Detail content slides up by this many px while it fades in
 const CONTENT_OFFSET = 24
 // Opening: the title strip follows a spring (~20% overshoot) while the image keeps the bezier (small elastic bounce)
+// Reanimated spring config of the title strip
 const TITLE_SPRING = { damping: 17, stiffness: 340, mass: 1 }
 
 // iOS edge swipe (replaces the native swipe-back, unavailable on modals)
+// The edge swipe only exists on iOS
 const SWIPE_ENABLED = Platform.OS === "ios"
+// Width (px) of the left screen edge that starts the swipe
 const SWIPE_EDGE = 30
+// Fraction of the screen width past which a release closes the screen
 const SWIPE_DISTANCE = 0.35
+// Release velocity (px/s) that closes the screen even when short
 const SWIPE_VELOCITY = 800
+// Duration of the swipe close / cancel animation (ms)
 const SWIPE_DURATION = 220
 
 // Stack.Screen options of a detail screen opened with the zoom transition (works/detail):
 // a transparent modal so the list stays rendered underneath, all the animations being done in JS
+// undefined when the feature is disabled (default stack options then apply)
 export const zoomDetailScreenOptions = ENABLE_ZOOM_TRANSITION
    ? ({
         presentation: "transparentModal",
@@ -83,9 +130,11 @@ export const zoomDetailScreenOptions = ENABLE_ZOOM_TRANSITION
    : undefined
 
 // Key of the card currently covered by the zoom overlay (read by WorkCard to hide its image)
+// Module-level shared value: id of the covered card, null when none
 export const zoomSourceKey = makeMutable<string | null>(null)
 
 // Measure a view in window coordinates and return route params (numbers): {prefix}X, {prefix}Y, {prefix}W, {prefix}H
+// prefix names the params; resolves {} (no zoom) when the feature is off or the view cannot be measured
 export const measureZoomSource = (ref: RefObject<HostInstance | null>, prefix = "zoom") => {
    return new Promise<Record<string, number>>((resolve) => {
       if (!ENABLE_ZOOM_TRANSITION || !ref?.current?.measureInWindow) return resolve({})
@@ -96,6 +145,7 @@ export const measureZoomSource = (ref: RefObject<HostInstance | null>, prefix = 
    })
 }
 
+// Parses {prefix}X/Y/W/H string params into a Rect; null when any is missing / invalid or the size is 0
 const toRect = (params: Record<string, string | undefined> | undefined, prefix = "zoom") => {
    const rect = {
       // Missing params give NaN, rejected by the isFinite check below
@@ -108,17 +158,24 @@ const toRect = (params: Record<string, string | undefined> | undefined, prefix =
    return isValid ? rect : null
 }
 
+// True when the rect is at least partly visible vertically (otherwise zooming back to it would look wrong)
 const isOnScreen = (rect: Rect) => {
    const { height } = Dimensions.get("window")
    return rect.y + rect.height > 0 && rect.y < height
 }
 
+// Resolves after the next frame (lets the card repaint before the screen is popped)
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
-// iOS edge swipe-back gesture (a hook: it only receives markClosing, which writes a ref, so it is not read during render)
+// iOS edge swipe-back gesture (a hook: it only receives markClosing, which writes a ref, so it is not read during
+// render)
+// Pan gesture of the iOS swipe-back. active: gesture enabled; swipeX: screen offset; markClosing: flags the closing
+// (JS); leave: pops the screen
 const useSwipeGesture = (active: boolean, swipeX: SharedValue<number>, markClosing: () => void, leave: () => void) =>
    useMemo(() => {
       const screenWidth = Dimensions.get("window").width
+      // The callbacks below run on the UI thread: onUpdate makes the screen follow the finger to the right only;
+      // onEnd closes when dragged far / fast enough (slide out, then leave), otherwise springs back to 0
       return Gesture.Pan()
          .enabled(active && SWIPE_ENABLED)
          .hitSlop({ left: 0, width: SWIPE_EDGE })
@@ -152,14 +209,20 @@ const useSwipeGesture = (active: boolean, swipeX: SharedValue<number>, markClosi
    }, [active, swipeX, markClosing, leave])
 
 // chipsTop: top of the detail chips row (the chips overlay goes from the card chips to there)
+// See header
 const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number, chipsTop: number) => {
+   // Used for goBack()
    const navigation = useNavigation()
+   // Route params, all optional
    const { id, zoomX, zoomY, zoomW, zoomH, chipsX, chipsY, chipsW, chipsH } = params ?? {}
+   // Card image rect (null without valid params)
    const source = useMemo(() => toRect({ zoomX, zoomY, zoomW, zoomH }), [zoomX, zoomY, zoomW, zoomH])
+   // Card chips rect (null when the card has no chips or no params)
    const chipsSource = useMemo(
       () => toRect({ chipsX, chipsY, chipsW, chipsH }, "chips"),
       [chipsX, chipsY, chipsW, chipsH],
    )
+   // Key of the card to hide behind the overlay
    const sourceKey = id != null ? String(id) : null
    // active: the screen is presented as a transparent modal (feature flag)
    // enabled: a source rect is available, the zoom animation can run
@@ -168,45 +231,62 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
    // The card chips move with the image (same duration and easing), when the card has some
    const chipsEnabled = enabled && chipsSource !== null
 
+   // Root view of the detail screen (origin of the overlay coordinates)
    const rootRef = useRef<HostInstance>(null)
+   // Header image view (measured on the way back: it may be scrolled)
    const headerRef = useRef<HostInstance>(null)
+   // Detail chips row view (measured on the way back)
    const chipsRef = useRef<HostInstance>(null)
+   // Opening animation already launched (onLayout can fire more than once)
    const isStarted = useRef(false)
+   // Opening finished: the header is painted
    const isOpened = useRef(false)
    // The heavy detail content is rendered once the image is in place, not during the zoom animation
    const [isContentReady, setIsContentReady] = useState(!active)
+   // A close is running: ignore further goBack / layout
    const isClosing = useRef(false)
 
    // Overlay rect in root coordinates
+   // Overlay position / size in root coordinates, starting on the card
    const x = useSharedValue(source?.x ?? 0)
    const y = useSharedValue(source?.y ?? 0)
    const width = useSharedValue(source?.width ?? 0)
    const height = useSharedValue(source?.height ?? 0)
    // 0 = card, 1 = header: drives the title strip size in the overlay
+   // Also animated 0 <-> 1 on open / close
    const progress = useSharedValue(enabled ? 0 : 1)
    // Opening: image and title end at different times, the handoff waits for both (count of finished parts)
    const finishedParts = useSharedValue(0)
+   // Flying overlay (image + title) opacity: visible until the real header takes over
    const overlayOpacity = useSharedValue(enabled ? 1 : 0)
+   // Real header image opacity (0 while the overlay flies)
    const headerOpacity = useSharedValue(enabled ? 0 : 1)
+   // Detail content (text, chips...) opacity / slide, 0 -> 1
    const content = useSharedValue(active ? 0 : 1)
+   // Detail screen own background opacity, 0 -> 1 (list visible behind while 0)
    const background = useSharedValue(active ? 0 : 1)
+   // Horizontal offset of the screen during the iOS swipe
    const swipeX = useSharedValue(0)
    // Chips overlay position and width in root coordinates (chips centered in that width)
    const chipsOffsetX = useSharedValue(chipsSource?.x ?? 0)
    const chipsOffsetY = useSharedValue(chipsSource?.y ?? 0)
    const chipsWidth = useSharedValue(chipsSource?.width ?? 0)
 
+   // Hides the card image of the source (WorkCard reads zoomSourceKey)
    const hideSource = useCallback(() => {
       if (sourceKey) zoomSourceKey.set(sourceKey)
    }, [sourceKey])
 
+   // Shows it again (only if it is still this card)
    const showSource = useCallback(() => {
       if (sourceKey && zoomSourceKey.get() === sourceKey) zoomSourceKey.set(null)
    }, [sourceKey])
 
    // Never leave a card hidden behind
+   // Cleanup on unmount
    useEffect(() => showSource, [showSource])
 
+   // Root view rect in the window (x, y, width); zeros when not measurable
    const measureRoot = useCallback(() => {
       return new Promise<{ x: number; y: number; width: number }>((resolve) => {
          if (!rootRef.current?.measureInWindow) return resolve({ x: 0, y: 0, width: 0 })
@@ -214,23 +294,28 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       })
    }, [])
 
+   // Allows the heavy detail content to render
    const markContentReady = useCallback(() => setIsContentReady(true), [])
 
+   // Called from the UI thread at the end of the opening
    const markOpened = useCallback(() => {
       isOpened.current = true
       // The detail background is opaque now: the card can be shown again behind it
       showSource()
    }, [showSource])
 
+   // Flags a close in progress (a ref: no re-render)
    const markClosing = useCallback(() => {
       isClosing.current = true
    }, [])
 
    // Pop the screen (presented without native animation: everything is animated in JS)
+   // Pops the screen
    const leave = useCallback(() => navigation.goBack(), [navigation])
 
    // Reverse handoff: show the card under the overlay (same image and title strip), then pop right away
    // so the list gets the touches back as soon as the animation looks finished
+   // End of the reverse zoom
    const land = useCallback(async () => {
       showSource()
       await nextFrame()
@@ -238,10 +323,12 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
    }, [showSource, leave])
 
    // Forward: source rect -> header rect (or a simple fade without source rect)
+   // Starts the forward animation once the root is laid out (one time only)
    const onRootLayout = useCallback(async () => {
       if (!active || isStarted.current || isClosing.current) return
       isStarted.current = true
 
+      // No source rect: plain fade of the background and content
       if (!enabled) {
          background.set(withTiming(1, { duration: FADE_DURATION }))
          content.set(
@@ -270,6 +357,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       }
       // Once the image and the title are both in place: reveal the real header,
       // then remove the overlay once the header is painted
+      // Worklet called when the image or the title animation ends; the second call hands off to the real header
       const onOpenPartDone = (finished?: boolean) => {
          "worklet"
          if (!finished) return
@@ -335,6 +423,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
 
    // Reverse: current header rect -> source rect, then go back
    // Used by the back button and the Android hardware back
+   // Reverse zoom, then pops; falls back to a fade when the card is not reachable
    const goBack = useCallback(async () => {
       if (!active) return navigation.goBack()
       if (isClosing.current) return
@@ -353,6 +442,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       }
 
       const root = await measureRoot()
+      // Rect of the card in root coordinates
       const target = { ...source, x: source.x - root.x, y: source.y - root.y }
 
       // Start from the header current position (it may be scrolled)
@@ -444,6 +534,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
 
    // Android hardware back plays the reverse zoom too
    // Only while focused: a fullScreenModal gallery on top must handle its own back press
+   // Android hardware back handler
    useFocusEffect(
       useCallback(() => {
          if (!active) return
@@ -456,8 +547,10 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
    )
 
    // iOS edge swipe-back: the screen follows the finger, the list is visible behind it
+   // Gesture object to wrap the screen in a GestureDetector
    const swipeGesture = useSwipeGesture(active, swipeX, markClosing, leave)
 
+   // Flying image overlay: absolute box following x / y / width / height
    const overlayStyle = useAnimatedStyle(() => ({
       position: "absolute",
       left: 0,
@@ -468,6 +561,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       transform: [{ translateX: x.get() }, { translateY: y.get() }],
    }))
 
+   // Real header image: appears at the handoff
    const headerStyle = useAnimatedStyle(() => ({
       opacity: headerOpacity.get(),
    }))
@@ -487,6 +581,7 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       opacity: headerOpacity.get(),
    }))
 
+   // Detail content: fade + slide up (CONTENT_OFFSET px)
    const contentStyle = useAnimatedStyle(() => ({
       opacity: content.get(),
       transform: [{ translateY: (1 - content.get()) * CONTENT_OFFSET }],
@@ -497,14 +592,17 @@ const useZoomTransition = (params: ZoomParams | undefined, headerHeight: number,
       opacity: content.get(),
    }))
 
+   // Own background fade
    const backgroundStyle = useAnimatedStyle(() => ({
       opacity: background.get(),
    }))
 
+   // Screen translation while swiping
    const swipeStyle = useAnimatedStyle(() => ({
       transform: [{ translateX: swipeX.get() }],
    }))
 
+   // Styles are undefined when their part is disabled
    return {
       active,
       isContentReady,

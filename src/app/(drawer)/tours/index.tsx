@@ -1,13 +1,26 @@
-import { ScrollView } from "react-native"
-import { useRef } from "react"
+/**
+ * index.tsx (src/app/(drawer)/tours, route "/tours")
+ *
+ * Tours list screen: the "Tours" title and one TourCard per tour, in a plain ScrollView (the list is short and
+ * hard-coded, nothing is fetched here): Louvain-la-Neuve (`id` "lln") and Ottignies ("ottignies") with their image on
+ * map.farmprod.be, and "Brussels (Soon)", a card without id (disabled). The `id` is the name of the tour JSON
+ * (`places.<id>.json`) loaded by tours/detail.tsx. `useMenuReset` scrolls back to the top when the drawer item is
+ * pressed.
+ */
 
-import ScreenTitle from "@/src/components/app/ScreenTitle"
-import TourCard from "@/src/components/TourCard"
-import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import useMenuReset from "@/src/hooks/useMenuReset"
+import { ScrollView } from "react-native" // Scrollable page
+import { useRef } from "react" // Ref of the scroll view
 
+import ScreenTitle from "@/src/components/app/ScreenTitle" // Big title
+import TourCard from "@/src/components/TourCard" // One tour card
+import HeaderDrawer from "@/src/layouts/HeaderDrawer" // Menu button + logo header
+import useMenuReset from "@/src/hooks/useMenuReset" // Scroll to top when the menu item is pressed
+
+// Screen of the route
 export default function Screen() {
+   // Scroll view ref, for the menu reset
    const scrollRef = useRef(null)
+   // Pressing the menu item scrolls back to the top
    useMenuReset(scrollRef)
 
    return (

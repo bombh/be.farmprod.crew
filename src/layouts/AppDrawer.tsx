@@ -1,21 +1,50 @@
-import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer"
-import type { DrawerContentComponentProps } from "expo-router/drawer"
-import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
-import colors from "tailwindcss/colors"
-import { cssInterop, useColorScheme } from "nativewind"
-import { View, Text, Image, Pressable } from "react-native"
-import { useSegments } from "expo-router"
-import * as Linking from "expo-linking"
-import { setThemePreference } from "@/src/lib/theme"
+/**
+ * AppDrawer.tsx
+ *
+ * The side drawer menu of the app (expo-router/drawer, `drawerType: "slide"`), used as the layout of the `(drawer)`
+ * route group (src/app/(drawer)/_layout.tsx re-exports it). It wraps the five sections: Works, Artists, Tours,
+ * 20 years, About, each with a FontAwesome6 icon on the right of its label.
+ *
+ * Contents:
+ * - AppDrawerContent: the custom drawer body: the Farm Prod logo, the list of menu items (DrawerItemList), two
+ *   round social buttons (Facebook, Instagram: open the native app when installed, else the website, see
+ *   `openWebOrApp`) and the ThemeSwitch.
+ * - ThemeSwitch: a Light / Dark segmented control (radio group). The selected value is the current NativeWind color
+ *   scheme (so it is preselected with the OS theme until the user picks one); pressing calls setThemePreference
+ *   (lib/theme.ts), which applies and persists the choice.
+ * - AppDrawer (default export): configures the Drawer. The drawer swipe gesture is only enabled on list screens
+ *   (route segments length <= 2, e.g. ["(drawer)", "works"]) so the iOS swipe-back works on detail screens.
+ *   The drawer is always dark (neutral-900), 220 px wide; headers are hidden because each screen draws its own
+ *   (layouts/HeaderDrawer.tsx or HeaderBack.tsx).
+ *
+ * Gotchas: FontAwesome6 needs `cssInterop` (done at the top of this file) to accept `className`; with the New
+ * Architecture icons need `iconStyle="solid"` / "brand" (the default is regular). Pressing an item of the menu also
+ * triggers hooks/useMenuReset.ts on the target screen (scroll to top + reset).
+ */
 
+// Drawer navigator and the pieces of its custom content
+import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer"
+import type { DrawerContentComponentProps } from "expo-router/drawer" // Props received by the custom drawer content
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6" // Menu, theme and social icons
+import colors from "tailwindcss/colors" // Tailwind color constants for style values
+// cssInterop: lets FontAwesome6 take className; useColorScheme: current theme
+import { cssInterop, useColorScheme } from "nativewind"
+import { View, Text, Image, Pressable } from "react-native" // Drawer layout elements
+import { useSegments } from "expo-router" // Current route segments, to know if a list or a detail screen is shown
+import * as Linking from "expo-linking" // canOpenURL / openURL for the social links
+import { setThemePreference } from "@/src/lib/theme" // Applies and persists the chosen theme
+
+// Maps `className` to the icon `style`
 cssInterop(FontAwesome6, {
    className: {
       target: "style",
    },
 })
 
+// Logo at the top of the drawer
 const logo = require("@/assets/images/logo_drawer.png")
 
+// webUrl: website fallback; appUrl: deep link of the native app
 // Open web or app
 const openWebOrApp = async (webUrl: string, appUrl: string) => {
    try {
@@ -30,12 +59,15 @@ const openWebOrApp = async (webUrl: string, appUrl: string) => {
 
 // Theme setting: Light / Dark (persisted, see src/lib/theme.ts)
 // Preselected with the OS theme until the user picks one
+// Options of the theme switch
 const THEMES = [
    { value: "light", label: "Light", icon: "sun" },
    { value: "dark", label: "Dark", icon: "moon" },
 ] as const
 
+// Light / Dark segmented control
 const ThemeSwitch = () => {
+   // Active color scheme: the selected segment follows it
    const { colorScheme } = useColorScheme()
 
    return (
@@ -45,6 +77,7 @@ const ThemeSwitch = () => {
          accessibilityLabel="Appearance"
       >
          {THEMES.map((theme) => {
+            // True for the segment matching the active scheme
             const selected = colorScheme === theme.value
             return (
                <Pressable
@@ -74,6 +107,7 @@ const ThemeSwitch = () => {
 }
 
 // Drawer content
+// props: given by the Drawer (state, navigation) and forwarded to DrawerItemList
 const AppDrawerContent = (props: DrawerContentComponentProps) => {
    return (
       <>
@@ -135,17 +169,25 @@ const AppDrawerContent = (props: DrawerContentComponentProps) => {
    )
 }
 
+// See header
 export default function AppDrawer() {
-   // Drawer swipe only on list screens ("(drawer)/works"), so the iOS swipe-back works on detail screens ("(drawer)/works/detail")
+   // Drawer swipe only on list screens ("(drawer)/works"), so the iOS swipe-back works on detail screens
+   // ("(drawer)/works/detail")
+   // Route segments of the current URL
    const segments: string[] = useSegments()
+   // True on a section list screen, false on its detail screens
    const isListScreen = segments.length <= 2
 
+   // One <Drawer.Screen> per section folder of src/app/(drawer): `name` is the folder name
    return (
       <Drawer
+         // Custom content instead of the default item list
          drawerContent={(props) => <AppDrawerContent {...props} />}
          screenOptions={{
+            // Swipe to open only on list screens
             swipeEnabled: isListScreen,
             headerShown: false,
+            // The screen slides with the drawer
             drawerType: "slide",
             headerTintColor: colors.black,
             headerTitleAlign: "center",
@@ -154,6 +196,7 @@ export default function AppDrawer() {
                width: 220,
                backgroundColor: colors.neutral[900],
             },
+            // Label shifted left to leave room for the icon displayed on the right
             drawerLabelStyle: {
                marginLeft: -10,
                // fontFamily: "PermanentMarker-Regular",

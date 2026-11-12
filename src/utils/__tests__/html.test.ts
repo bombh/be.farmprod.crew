@@ -1,4 +1,19 @@
+/**
+ * html.test.ts
+ *
+ * Jest unit tests (jest-expo preset) of src/utils/html.ts, the parser that cleans Ghost HTML for RenderHtml.
+ * Three groups:
+ * - "cleanHtml": the Ghost HTML -> array of simple tags conversion: paragraphs, headings (ids kept, h1/h2 -> h2,
+ *   h3-h6 -> h3), ordered / unordered lists, <br>, entities, nested inline tags, image cards and galleries (resized to
+ *   w600, srcset and captions dropped), removal of iframes / scripts / comments / bookmark cards, and robustness
+ *   (invalid input, unclosed tags, text outside blocks).
+ * - "image helpers": getImageSrc, getImageURI (w1600 variant), getImages, and an end-to-end Ghost post.
+ * - "tag helpers": getTagName, getTagContent, getTagAttribute, decodeEntities on unknown entities.
+ * Fixtures are realistic Ghost markup (see `imageCard`). Run with `npm test` or `npx jest --ci`.
+ */
+
 /* global describe, it, expect */
+// Functions under test: cleanHtml (main parser), decodeEntities, the image helpers and the tag helpers
 import {
    cleanHtml,
    decodeEntities,
@@ -10,9 +25,10 @@ import {
    getTagName,
 } from "@/src/utils/html"
 
+// Base URL of the Ghost content images used in the fixtures
 const BASE = "https://www.farmprod.be/content/images"
 
-// Realistic Ghost image card
+// Realistic Ghost image card: builds the markup Ghost generates (figure + img with srcset + optional figcaption)
 const imageCard = (path: string, caption = "") =>
    `<figure class="kg-card kg-image-card${caption ? " kg-card-hascaption" : ""}">` +
    `<img src="${BASE}/${path}" class="kg-image" alt="" loading="lazy" width="2000" height="1333" ` +
@@ -21,6 +37,7 @@ const imageCard = (path: string, caption = "") =>
    (caption ? `<figcaption><span style="white-space: pre-wrap;">${caption}</span></figcaption>` : "") +
    `</figure>`
 
+// Ghost HTML -> simple tag strings
 describe("cleanHtml", () => {
    it("returns an empty array for empty or invalid input", () => {
       expect(cleanHtml(undefined)).toEqual([])
@@ -149,6 +166,7 @@ describe("cleanHtml", () => {
    })
 })
 
+// Extraction of image URIs from cleaned HTML
 describe("image helpers", () => {
    const html = [
       "<p>Intro</p>",
@@ -188,6 +206,7 @@ describe("image helpers", () => {
    })
 })
 
+// Reading name / content / attributes of a cleaned HTML item
 describe("tag helpers", () => {
    it("getTagName returns the lowercased tag name", () => {
       expect(getTagName("<p>Text</p>")).toBe("p")

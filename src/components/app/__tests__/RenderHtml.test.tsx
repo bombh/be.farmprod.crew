@@ -1,26 +1,49 @@
+/**
+ * RenderHtml.test.tsx
+ *
+ * Jest tests (jest-expo preset) of components/app/RenderHtml.tsx, with react-test-renderer and small query helpers
+ * (`screen`, `fireEvent`) defined here instead of @testing-library/react-native.
+ * Mocks: `expo-router` (useRouter().navigate is a jest.fn to check the gallery navigation) and `expo-image` (a plain
+ * View with testID "expo-image" + a mocked Image.prefetch).
+ * Cases covered:
+ * - paragraphs, headings, list items (bullet / numbered) and images are rendered from a Ghost HTML fixture;
+ * - pressing an image opens the gallery at that image (route params index + images) and prefetches pictures;
+ * - no navigation when `gallery` is false;
+ * - authors ("Artists") and an accessible email button are rendered;
+ * - with `reveal` outside a ParallaxScrollView, bands and the button render at rest;
+ * - empty html renders nothing.
+ */
+
 /* global describe, it, expect, jest, beforeEach */
 // These tests use react-test-renderer with small query helpers (no @testing-library/react-native).
-import { act, create } from "react-test-renderer"
-import type { ReactTestRenderer } from "react-test-renderer"
-import { Linking } from "react-native"
-import RenderHtml from "@/src/components/app/RenderHtml"
+import { act, create } from "react-test-renderer" // act: flush updates; create: render to a test tree
+import type { ReactTestRenderer } from "react-test-renderer" // Type of the test renderer
+import { Linking } from "react-native" // Native linking module (the email button opens a mailto URL)
+import RenderHtml from "@/src/components/app/RenderHtml" // Component under test
 
 // The part of a test instance read here (its type is an element type, a string for host components)
 interface TestNode {
+   // Element type ("View" / "Text" strings for host components)
    type: unknown
+   // Props read by the helpers
    props: { testID?: string; accessibilityLabel?: string; onPress?: () => void; children?: unknown }
+   // Parent node
    parent: TestNode | null
+   // Child nodes or text strings
    children: (TestNode | string)[]
 }
 
+// Current renderer, set by render()
 let renderer: ReactTestRenderer
 
+// Mounts an element and waits for effects
 const render = async (element: Parameters<typeof create>[0]) => {
    await act(async () => {
       renderer = create(element)
    })
 }
 
+// Concatenated text of a node
 const textOf = (node: TestNode | string): string =>
    typeof node === "string" ? node : (node.children ?? []).map((child) => textOf(child)).join("")
 
@@ -31,19 +54,25 @@ const getTexts = () =>
       .filter((node: TestNode) => node.parent?.type !== "Text")
       .map((node: TestNode) => textOf(node))
 
+// Minimal testing-library-like queries on the current renderer
 const screen = {
+   // Single text equal to the argument, throws otherwise
    getByText: (text: string) => {
       const found = getTexts().filter((value) => value === text)
       if (found.length !== 1) throw new Error(`Expected one text "${text}", found ${found.length}: ${getTexts()}`)
       return found[0]
    },
+   // View nodes with this testID
    getAllByTestId: (testID: string) =>
       renderer.root.findAll((node: TestNode) => node.type === "View" && node.props.testID === testID),
+   // First match or null
    queryByTestId: (testID: string) => screen.getAllByTestId(testID)[0] ?? null,
+   // Pressable nodes (with onPress) having this accessibilityLabel
    getAllByLabelText: (label: string) =>
       renderer.root.findAll(
          (node: TestNode) => node.props.accessibilityLabel === label && typeof node.props.onPress === "function",
       ),
+   // First pressable with the label, throws if none
    getByLabelText: (label: string) => {
       const found = screen.getAllByLabelText(label)
       if (!found.length) throw new Error(`No pressable with label "${label}"`)
@@ -51,16 +80,21 @@ const screen = {
    },
 }
 
+// Minimal event helper
 const fireEvent = {
+   // Calls onPress inside act
    press: (node: TestNode) => act(() => node.props.onPress!()),
 }
 
+// Spy for router.navigate
 const mockNavigate = jest.fn()
 
+// Only useRouter is needed by RenderHtml
 jest.mock("expo-router", () => ({
    useRouter: () => ({ navigate: mockNavigate }),
 }))
 
+// Image replaced by a View so props can be inspected
 jest.mock("expo-image", () => {
    // A jest.mock factory runs before the imports: react-native has to be required inside it
    // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -76,8 +110,10 @@ jest.mock("expo-image", () => {
    return { Image }
 })
 
+// Base URL of the Ghost images in the fixture
 const BASE = "https://www.farmprod.be/content/images"
 
+// Ghost-like content: paragraph with link and entity, image card, h2, h3, ul, ol, second image
 const html =
    '<p>Painted by <a href="https://farmprod.be">Farm Prod</a> &amp; friends.</p>' +
    `<figure class="kg-card kg-image-card"><img src="${BASE}/2023/05/wall.jpg" class="kg-image" alt="" srcset="${BASE}/size/w600/2023/05/wall.jpg 600w"></figure>` +
@@ -86,7 +122,9 @@ const html =
    "<ul><li>Spray</li></ul><ol><li>First</li></ol>" +
    `<figure class="kg-card kg-image-card"><img src="${BASE}/2023/05/detail.jpg"></figure>`
 
+// RenderHtml rendering and interactions
 describe("RenderHtml", () => {
+   // Reset the navigation spy between tests
    beforeEach(() => {
       mockNavigate.mockClear()
    })

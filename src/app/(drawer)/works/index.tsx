@@ -1,57 +1,98 @@
-import { ActivityIndicator, BackHandler, Pressable, Text, View } from "react-native"
-import type { LayoutChangeEvent } from "react-native"
-import { FlashList } from "@shopify/flash-list"
-import type { FlashListRef } from "@shopify/flash-list"
-import FontAwesome6 from "@react-native-vector-icons/fontawesome6"
+/**
+ * index.tsx (src/app/(drawer)/works, route "/works", the home screen: "/" redirects here)
+ *
+ * Works list screen: the street art works of the collective (Ghost posts) in a FlashList of WorkCard
+ * (components/WorkCard.tsx), with infinite scrolling and a year / city filter.
+ *
+ * Data: `useInfiniteAPI("posts", "limit=15&include=tags&fields=...")` loads pages of 15 posts without html (light
+ * payload, small persisted cache). Pages are flattened into `posts`; `visiblePosts` = posts filtered by the active
+ * filter's tag slug (utils/works.ts). `onEndReached` loads the next page; with a filter active, more pages are loaded
+ * automatically until at least MIN_FILTERED_RESULTS works match. A footer shows the next-page spinner or a Try again
+ * link, and an empty state when no loaded work matches. LoadingGate handles the first load / error / offline state.
+ *
+ * Filtering: pressing a chip on a card (`onTagPress`) starts a "cascade": the cards fade out downward and the list
+ * scrolls to the top (step 1), the filter is applied (step 2) and the filtered cards rise in (step 3, remounted with
+ * the "rise" entry animation: `entryRun`). The header then shows the filter label as a marker-font subtitle and an
+ * "All" chip that plays the reverse cascade (`showAllWorks`: cards and subtitle fade out, filter cleared). The menu
+ * (useMenuReset) clears the filter instantly and scrolls to the top.
+ * Entry animations: the first 4 cards slide in ("slide") on first display, then `entry` is switched off after
+ * ENTRY_ANIMATION_MS or on the first scroll so recycled cards never replay it.
+ * Chip flight (lib/chipFlight.ts): a chip pressed on the work detail page asks this screen for a filter
+ * (`onWorksFilterRequest`); the real subtitle is hidden (`subtitleOpacity`), the list is filtered, and once laid out
+ * from the top the subtitle position is reported back (`reportSubtitleRect`) so the chip can fly onto it.
+ * Android back button is swallowed on this screen (it would close the app).
+ */
 
-import { useInfiniteAPI } from "@/src/hooks/useAPI"
-import ScreenTitle from "@/src/components/app/ScreenTitle"
-import WorkCard from "@/src/components/WorkCard"
-import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import LoadingGate from "@/src/components/app/LoadingGate"
-import MotionView from "@/src/components/app/MotionView"
-import { filterWorks } from "@/src/utils/works"
-import type { EntryAnimation } from "@/src/constants/animations"
-import type { WorkTagChip } from "@/src/utils/works"
-import type { GhostPost, GhostPostsResponse } from "@/src/types/ghost"
-import { useFocusEffect } from "expo-router"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import type { ComponentRef } from "react"
-import useThemeColors from "@/src/hooks/useThemeColors"
-import Chip from "@/src/components/app/Chip"
+// Layout, footer spinner, Android back handling
+import { ActivityIndicator, BackHandler, Pressable, Text, View } from "react-native"
+import type { LayoutChangeEvent } from "react-native" // Layout event type of the subtitle
+import { FlashList } from "@shopify/flash-list" // Performant list (used instead of FlatList)
+import type { FlashListRef } from "@shopify/flash-list" // Type of the list ref (scrollToOffset)
+import FontAwesome6 from "@react-native-vector-icons/fontawesome6" // Empty state icon
+
+import { useInfiniteAPI } from "@/src/hooks/useAPI" // Paginated Ghost posts
+import ScreenTitle from "@/src/components/app/ScreenTitle" // Big title, list header
+import WorkCard from "@/src/components/WorkCard" // One work card
+import HeaderDrawer from "@/src/layouts/HeaderDrawer" // Menu button + logo header
+import LoadingGate from "@/src/components/app/LoadingGate" // Loading / error / content gate
+import MotionView from "@/src/components/app/MotionView" // Entry animation of the header elements
+import { filterWorks } from "@/src/utils/works" // Filters posts by tag slug
+import type { EntryAnimation } from "@/src/constants/animations" // Config type of the header animations
+import type { WorkTagChip } from "@/src/utils/works" // Filter shape { type, slug, label }
+import type { GhostPost, GhostPostsResponse } from "@/src/types/ghost" // Post and response types
+import { useFocusEffect } from "expo-router" // Runs the back handler only while this screen is focused
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react" // React state and effects
+import type { ComponentRef } from "react" // Type of the subtitle Text ref
+import useThemeColors from "@/src/hooks/useThemeColors" // Spinner and empty icon colors
+import Chip from "@/src/components/app/Chip" // "All" button
+// Clears the filter and scrolls to top when the menu item is pressed
 import useMenuReset from "@/src/hooks/useMenuReset"
+// Reanimated: animated views, easing, animated styles, shared values, timing
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
-import { scheduleOnRN } from "react-native-worklets"
+import { scheduleOnRN } from "react-native-worklets" // Calls JS functions from animation callbacks
+// Link with the chip flight of the detail page
 import { onWorksFilterRequest, reportSubtitleRect, subtitleOpacity } from "@/src/lib/chipFlight"
 
+// Posts per Ghost page
 const PAGE_SIZE = 15
 // Light list payload (no html): keeps the persisted cache small
 // Ghost only returns the computed `excerpt` without `fields`; list queries use `custom_excerpt` instead
+// Ghost `fields` requested by the list
 const LIST_FIELDS = "id,title,slug,custom_excerpt,feature_image,url"
 // With an active filter, keep loading pages until at least this many results are shown
+// Pages keep loading while a filter shows fewer results
 const MIN_FILTERED_RESULTS = 6
 // Entry animation of the first 4 cards: 3 × 200 ms delay + 600 ms (animations.listItem), plus a margin
 // (also covers the shorter "rise" animation of the chip flight)
+// Time after which the entry animation of the first cards is switched off
 const ENTRY_ANIMATION_MS = 1400
 // Cascade filter (chip pressed on a card): the cards fade out downward, then the filtered ones rise in
+// Duration of the cards fade-out (ms)
 const CASCADE_EXIT_MS = 220
+// Same "emphasized decelerate" curve as the other transitions
 const CASCADE_EASING = Easing.bezier(0.2, 0, 0, 1)
 // Subtitle and All button settling in after a cascade filter
+// Entry animation config of the filter subtitle
 const SUBTITLE_ENTRY: EntryAnimation = {
    from: { opacity: 0, translateY: -10, scale: 0.92 },
    animate: { opacity: 1, translateY: 0, scale: 1 },
    transition: { type: "timing", duration: 340 },
 }
 // "All" button (reverse cascade): the subtitle collapses and the All button slides out while the cards fade out
+// Duration of the header exit of the reverse cascade (ms)
 const HEADER_EXIT_MS = 260
+// px the All button slides left on exit
 const ALL_EXIT_OFFSET = 8
+// Entry animation config of the All button
 const ALL_ENTRY: EntryAnimation = {
    from: { opacity: 0, translateX: -8 },
    animate: { opacity: 1, translateX: 0 },
    transition: { type: "timing", duration: 300, delay: 60 },
 }
 
+// Screen of the route
 export default function Screen() {
+   // Paginated query: data.pages, hasNextPage, fetchNextPage... (legacy result shape + pagination fields)
    const {
       data,
       isLoading,
@@ -65,34 +106,51 @@ export default function Screen() {
    } = useInfiniteAPI<GhostPostsResponse>("posts", `limit=${PAGE_SIZE}&include=tags&fields=${LIST_FIELDS}`)
 
    // Active filter, one at a time: { type: "year" | "city", slug, label } (the chip pressed on a card)
+   // Active filter
    const [filter, setFilter] = useState<WorkTagChip | null>(null)
    // Entry animation of the first cards: "slide" when the list first appears, "rise" after a chip flight,
    // then switched off (first scroll, filter or end of the sequence) so recycled cards never replay it
+   // Entry animation kind
    const [entry, setEntry] = useState<"slide" | "rise" | null>("slide")
+   // Switches the entry animation off
    const stopEntryAnimation = useCallback(() => setEntry(null), [])
    // Incremented when an entry animation starts: the cards are remounted to replay it (see WorkCard)
+   // Remount counter for the cards
    const [entryRun, setEntryRun] = useState(0)
+   // Theme colors
    const theme = useThemeColors()
+   // List ref: scrolls to the top
    const listRef = useRef<FlashListRef<GhostPost>>(null)
+   // Subtitle text, measured for the chip flight
    const subtitleRef = useRef<ComponentRef<typeof Text>>(null)
    // Set by a chip flight: the subtitle rect is reported once the filtered list is shown from the top
+   // Set by a chip flight
    const isSubtitleAwaited = useRef(false)
    // Cascade filter: cards fade-out progress (0 -> 1), header entry animation, double press guard
+   // Cards exit progress 0 -> 1, passed to every card
    const cardsExit = useSharedValue(0)
+   // True when the header elements should play their entry animation (after a cascade)
    const [animateHeader, setAnimateHeader] = useState(false)
+   // True while a cascade is running (ignores presses)
    const isCascading = useRef(false)
    // Reverse cascade ("All" button): header exit progress (0 -> 1) and subtitle height at rest
+   // Header exit progress 0 -> 1
    const headerExit = useSharedValue(0)
+   // Height of the subtitle at rest (for the collapse)
    const subtitleHeight = useSharedValue(0)
    // Latest filter, read by onTagPress without making it (and so every memoized card) change with the filter
+   // Latest filter
    const filterRef = useRef<WorkTagChip | null>(null)
+   // Keeps filterRef up to date
    useLayoutEffect(() => {
       filterRef.current = filter
    }, [filter])
 
+   // Switches the entry animation off after ENTRY_ANIMATION_MS, once the list is loaded
    useEffect(() => {
       if (isLoading || !entry) return
       const timeout = setTimeout(stopEntryAnimation, ENTRY_ANIMATION_MS)
+      // Header menu + the list in a LoadingGate (only isLoading / isError are used, no data prop)
       return () => clearTimeout(timeout)
    }, [isLoading, entry, stopEntryAnimation])
 
@@ -112,6 +170,7 @@ export default function Screen() {
    )
 
    // Subtitle: hidden during a chip flight, shrinks and collapses its height on the "All" reverse cascade
+   // Subtitle: opacity (chip flight x exit), slight scale and height collapse on exit
    const subtitleStyle = useAnimatedStyle(() => {
       const exit = headerExit.get()
       return {
@@ -121,6 +180,7 @@ export default function Screen() {
       }
    })
 
+   // All button: fades and slides left on exit
    const allStyle = useAnimatedStyle(() => ({
       opacity: 1 - headerExit.get(),
       transform: [{ translateX: -headerExit.get() * ALL_EXIT_OFFSET }],
@@ -128,6 +188,7 @@ export default function Screen() {
 
    // Cascade, step 2 (cards faded out): apply the filter, the list is shown from the top (effect below)
    // and the filtered cards rise in (remounted with the "rise" entry animation)
+   // Applies the filter chosen by a chip press (JS thread)
    const applyCascadeFilter = useCallback((chip: WorkTagChip) => {
       setFilter(chip)
       setAnimateHeader(true)
@@ -137,6 +198,7 @@ export default function Screen() {
 
    // Cascade, step 1: the cards fade out downward while the list glides to the top.
    // Pressing the active filter's chip does nothing: the "All" button (or the menu) is the way back to the full list
+   // Stable: starts the cascade, ignoring presses during a cascade and on the active filter
    const onTagPress = useCallback(
       (chip: WorkTagChip) => {
          if (isCascading.current || chip.slug === filterRef.current?.slug) return
@@ -160,6 +222,7 @@ export default function Screen() {
    }, [entryRun, cardsExit, headerExit])
 
    // Reverse cascade, step 2 (cards and header faded out): full list, its first cards rising in
+   // Clears the filter (JS thread)
    const applyAllFilter = useCallback(() => {
       setFilter(null)
       setAnimateHeader(false)
@@ -169,6 +232,7 @@ export default function Screen() {
 
    // "All" button, reverse cascade step 1: the filtered cards fade out downward while the list glides to the top,
    // the subtitle collapses and the All button slides out
+   // Starts the reverse cascade
    const showAllWorks = () => {
       if (isCascading.current || !filterRef.current) return
       isCascading.current = true
@@ -182,9 +246,11 @@ export default function Screen() {
    }
 
    // Menu: no animation (the screen is shown from the top, see useMenuReset)
+   // Instant reset used by the menu
    const clearFilter = () => setFilter(null)
 
    // Menu: back to the full list, from the top
+   // Menu press: scroll to the top and clear the filter
    useMenuReset(listRef, clearFilter)
 
    // Results are shown from the top of the list (title included).
@@ -207,14 +273,20 @@ export default function Screen() {
    }, [filter])
 
    // Flatten the Ghost pages ({ posts, meta }) into a single list
+   // Every loaded post
    const posts = useMemo(() => data?.pages?.flatMap((page) => page?.posts ?? []) ?? [], [data])
 
+   // A filter is active
    const isFiltering = filter !== null
+   // Posts matching the filter (all without filter)
    const visiblePosts = useMemo(() => filterWorks(posts, filter?.slug), [posts, filter])
 
+   // A next page exists and nothing blocks loading it
    const canFetchMore = hasNextPage && !isFetchingNextPage && !isFetchNextPageError
+   // Also not refreshing: allowed to load pages automatically
    const canAutoFetch = canFetchMore && !isRefetching
 
+   // Loads the next page near the end of the list
    const onEndReached = useCallback(() => {
       if (canFetchMore) fetchNextPage()
    }, [canFetchMore, fetchNextPage])
@@ -225,6 +297,7 @@ export default function Screen() {
    }, [isFiltering, visiblePosts.length, canAutoFetch, fetchNextPage])
 
    // Stable callbacks: memoized cards only re-render when their own work changes
+   // One card of the list
    const renderItem = useCallback(
       ({ item, index }: { item: GhostPost; index: number }) => (
          <WorkCard
@@ -239,6 +312,7 @@ export default function Screen() {
       [onTagPress, entry, entryRun, cardsExit],
    )
 
+   // Footer: spinner, error with Try again, or spacing
    const renderFooter = () => {
       if (isFetchingNextPage) {
          return (
@@ -264,6 +338,7 @@ export default function Screen() {
       return <View className="h-6" />
    }
 
+   // Empty state of an active filter with no match
    const renderEmpty = () => {
       if (!isFiltering || hasNextPage) return null
       return (
@@ -279,6 +354,7 @@ export default function Screen() {
       )
    }
 
+   // Header: title row (with the All button) and the filter subtitle
    const listHeader = (
       <View>
          {/* Title row: the All button sits at the title's height, so the list does not move when it appears */}

@@ -1,18 +1,38 @@
-import { View, Text, Pressable, Linking } from "react-native"
-import { Image } from "expo-image"
+/**
+ * index.tsx (src/app/(drawer)/20years, route "/20years")
+ *
+ * 20 years anniversary screen of the collective, with static content written in the file (nothing is fetched from
+ * Ghost): the team photo, "The Book" (cfc Editions book "In Paint We Trust": cover, text, three page images, a round
+ * button to buy it) and "The Expo" (text, a round button to the Facebook photos, four photos). Images are hosted on
+ * map.farmprod.be.
+ *
+ * Motion: the whole screen is a ParallaxScrollView (components/app/Parallax.tsx): the team photo is a ParallaxHeader
+ * (zooms out on arrival, then moves slower than the content), and the black title bands and round buttons are
+ * <Reveal> blocks that come in when they enter the viewport.
+ * Gallery: pressing the cover, a book page or an expo photo navigates to "/20years/pictures" (screens/Gallery.tsx) with
+ * `index` (position in `imagesArray`: cover, book pages, expo images) and `images` (all URIs) as params.
+ * `useMenuReset` scrolls back to the top when the drawer item is pressed. Icon colors come from useThemeColors.
+ */
 
-import ScreenTitle from "@/src/components/app/ScreenTitle"
-import HeaderDrawer from "@/src/layouts/HeaderDrawer"
-import useThemeColors from "@/src/hooks/useThemeColors"
-import MaterialIcons from "@react-native-vector-icons/material-icons"
-import { useRouter } from "expo-router"
-import { useRef } from "react"
-import useMenuReset from "@/src/hooks/useMenuReset"
+import { View, Text, Pressable, Linking } from "react-native" // Layout, text, pressable images, external links
+import { Image } from "expo-image" // Images with placeholder and fade
+
+import ScreenTitle from "@/src/components/app/ScreenTitle" // Big title
+import HeaderDrawer from "@/src/layouts/HeaderDrawer" // Menu button + logo header
+import useThemeColors from "@/src/hooks/useThemeColors" // Icon color of the round buttons
+import MaterialIcons from "@react-native-vector-icons/material-icons" // Icons of the round buttons
+import { useRouter } from "expo-router" // Navigation to the gallery route
+import { useRef } from "react" // Ref of the scroll view
+import useMenuReset from "@/src/hooks/useMenuReset" // Scroll to top when the menu item is pressed
+// Parallax scroll view, header image, scroll-revealed blocks
 import { ParallaxHeader, ParallaxScrollView, Reveal } from "@/src/components/app/Parallax"
 
+// Folder of the images on map.farmprod.be
 const baseUrl = "https://map.farmprod.be/street-art-map-olln/public/app/images/"
+// Local image shown while images load
 const placeholder = require("@/assets/images/placeholder.png")
 
+// URL of each image of the screen
 const images = {
    team: `${baseUrl}team.jpg`,
    cover: `${baseUrl}book_cover.jpg`,
@@ -25,13 +45,17 @@ const images = {
    expo04: `${baseUrl}expo_04.jpg`,
 }
 
+// The three book page images, in display order
 const bookPages = [images.page01, images.page02, images.page03]
+// The four expo images, in display order
 const expoImages = [images.expo01, images.expo02, images.expo04, images.expo03]
 
 // Gallery order: cover, book pages, expo images
 const imagesArray = [images.cover, ...bookPages, ...expoImages]
 
+// Props: uri (image), isLast (no bottom margin), onPress (receives the uri), label (accessibility)
 // Full-width pressable image opening the gallery
+// See comment above
 const GalleryImage = ({
    uri,
    isLast,
@@ -62,12 +86,18 @@ const GalleryImage = ({
    </View>
 )
 
+// Screen of the route
 export default function Screen() {
+   // Navigation
    const router = useRouter()
+   // Theme colors (actionIcon)
    const theme = useThemeColors()
+   // Scroll view ref, for the menu reset
    const scrollRef = useRef(null)
+   // Pressing the menu item scrolls back to the top
    useMenuReset(scrollRef)
 
+   // Opens the gallery at the pressed image: index in imagesArray + the list of all URIs
    const handlePressImage = (uri: string) => {
       const imageIndex = imagesArray.indexOf(uri)
 
@@ -80,6 +110,7 @@ export default function Screen() {
       })
    }
 
+   // Header, then the parallax content (the JSX is long: title, team photo, book section, expo section)
    return (
       <>
          <HeaderDrawer />
